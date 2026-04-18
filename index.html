@@ -113,7 +113,20 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .pos-S{background:#ecfdf5;color:#064e3b;border-color:#a7f3d0;}
 .pos-ATH{background:#f9fafb;color:#374151;border-color:#e5e7eb;}
 
-/* ── BEST AVAILABLE ── */
+/* ── ON THE CLOCK PANEL ── */
+.otc-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
+.otc-header{padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(26,86,219,.04);display:flex;align-items:center;justify-content:space-between;}
+.otc-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
+.otc-pick{font-family:var(--df);font-size:12px;font-weight:700;color:var(--muted);}
+.otc-row{display:grid;grid-template-columns:1fr 58px 64px;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.otc-row:last-child{border-bottom:none;}
+.otc-row:hover{background:var(--s2);}
+.otc-name{font-size:14px;font-weight:600;color:var(--text);}
+.otc-player{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.otc-pts{font-family:var(--df);font-size:18px;font-weight:800;text-align:right;}
+.otc-pts.v3{color:var(--green);}
+.otc-pts.v1{color:var(--amber);}
+.otc-pts.v0{color:#d1d5db;}
 .avail-search{width:100%;padding:10px 14px;background:var(--s2);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:14px;outline:none;}
 .avail-search::placeholder{color:var(--muted);}
 .avail-row{display:flex;align-items:center;gap:9px;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
@@ -177,7 +190,10 @@ textarea{min-height:110px;resize:vertical;font-size:13px;}
 
 <header>
   <span class="site-title">NFL Mock Draft Challenge 2026</span>
-  <div class="live-dot" id="live-dot"><span class="dot"></span><span id="live-label">Pre-draft</span></div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div id="countdown" style="font-family:var(--df);font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-align:right"></div>
+    <div class="live-dot" id="live-dot"><span class="dot"></span><span id="live-label">Pre-draft</span></div>
+  </div>
 </header>
 <div class="nav-tabs" id="nav-tabs"></div>
 <div class="main" id="main-content"></div>
@@ -449,12 +465,14 @@ function renderLeaderboard(){
   const rulesHtml = `<div class="rules-card">
     <div class="rules-header"><span class="rules-title">Scoring Rules</span></div>
     <div class="rules-body">
-      <div class="rule"><span class="rule-dot">3</span><span>Points for correct player <em>and</em> team (positions are per CBS Sports official list).</span></div>
-      <div class="rule"><span class="rule-dot">1</span><span>Point for correct position but wrong player (same team).</span></div>
-      <div class="rule"><span class="rule-dot">1</span><span>Point for correct player drafted by a different team due to a trade.</span></div>
-      <div class="rule"><span class="rule-dot">1</span><span>Point if you mocked a player to a team with multiple picks and they were taken in a different round-1 slot by that same team.</span></div>
-      <div class="rule"><span class="rule-dot">0</span><span>Points if a team trades out of the first round — that pick is null. If a team trades multiple picks to move up, you earn points for correctly predicting either pick.</span></div>
-      <div class="rule"><span class="rule-dot">✕</span><span>If you mock the same player in multiple slots, all instances are void.</span></div>
+      <div class="rule"><span class="rule-dot">3</span><span>Points for correct player (and position).</span></div>
+      <div class="rule"><span class="rule-dot">1</span><span>Point for correct position but incorrect player.</span></div>
+      <div class="rule"><span class="rule-dot">·</span><span>Trades count for the team, not the draft slot. <em>E.g.: If the Jets trade from No. 2 to No. 1 and select Fernando Mendoza, participants who mocked Mendoza to the Jets at No. 2 will receive 3 points. Participants who mocked Mendoza to the Raiders at No. 1 will receive 1 point if the Raiders select a different QB at No. 2, or 0 points if the Raiders select a different position at No. 2.</em></span></div>
+      <div class="rule"><span class="rule-dot">·</span><span>Official positions are per the CBS Sports list. Note that OT/IOL, DL/EDGE, and LB/EDGE are different positions.</span></div>
+      <div class="rule"><span class="rule-dot">1</span><span>Point if a team has multiple picks and you select the correct player but in the wrong pick slot. <em>E.g.: In 2023, HOU had picks No. 2 and No. 12. Participants who mocked Will Anderson to HOU at No. 2 received 1 point when HOU selected him at No. 3. Participants who mocked Anderson to HOU at No. 12 received 3 points.</em></span></div>
+      <div class="rule"><span class="rule-dot">0</span><span>If a team trades from outside the first round into the first round, that pick is null.</span></div>
+      <div class="rule"><span class="rule-dot">·</span><span>If a team trades multiple 1st round picks to move up for one pick, you will receive points for correctly mocking either pick.</span></div>
+      <div class="rule"><span class="rule-dot">✕</span><span>If you mock the same player in multiple slots, he is void in all slots.</span></div>
     </div>
   </div>`;
 
@@ -480,12 +498,51 @@ function renderLeaderboard(){
     `<div class="avail-row">${posBadge(p.pos)}<span class="avail-name">${p.name}</span></div>`
   ).join("") || `<div class="empty-state">No players match.</div>`;
 
+  // On-the-clock panel — show all participant predictions for the current pick
+  let otcHtml = "";
+  if(nextSlot){
+    const scores2 = getAllScores(); // already computed above but need pickScores
+    const otcRows = state.participants.map(p=>{
+      const sc = scoreParticipant(p);
+      const pk = sc.pickScores.find(x=>x.pick===nextSlot.pick);
+      return {name:p.name, player:pk?.player||"—", pos:pk?.pos||"", pts:pk?.pts, maxPts:pk?.maxPts};
+    }).sort((a,b)=>{ // sort: those who picked something first, then alpha
+      if(!a.player||a.player==="—") return 1;
+      if(!b.player||b.player==="—") return -1;
+      return a.player.localeCompare(b.player);
+    });
+
+    const otcRowsHtml = otcRows.map(r=>{
+      const pc = r.pts===3?"v3":r.pts===1?"v1":"v0";
+      const ptsEl = r.pts!==null&&r.pts!==undefined
+        ? `<div class="otc-pts ${pc}">${r.pts}</div>`
+        : `<div class="otc-pts v0">—</div>`;
+      return `<div class="otc-row">
+        <div>
+          <div class="otc-name">${r.name}</div>
+          <div class="otc-player">${r.player}${r.pos?` · <span style="color:var(--muted)">${r.pos}</span>`:""}</div>
+        </div>
+        <div>${r.pos?posBadge(r.pos):""}</div>
+        <div>${ptsEl}</div>
+      </div>`;
+    }).join("");
+
+    otcHtml = `<div class="otc-panel">
+      <div class="otc-header">
+        <span class="otc-title">On the Clock — Pick ${nextSlot.pick}</span>
+        <span class="otc-pick">${teamBadge(nextSlot.team,24)}</span>
+      </div>
+      ${otcRowsHtml||`<div class="empty-state">No participants yet.</div>`}
+    </div>`;
+  }
+
   return `<div class="col3">
     <div>
       <div class="panel">
         <div class="ph"><span class="ph-title">Leaderboard</span><span class="ph-badge">${state.participants.length} entries</span></div>
         <div class="scrollable" style="max-height:calc(100vh - 420px)">${lbHtml}</div>
       </div>
+      ${otcHtml}
       ${potHtml}
       ${rulesHtml}
     </div>
@@ -799,8 +856,33 @@ function importState(input){
 }
 
 // ─────────────────────────────────────────────────────────────────
-// NAV / RENDER
+// COUNTDOWN — NFL Draft 2026: April 24, 8pm ET
 // ─────────────────────────────────────────────────────────────────
+const DRAFT_START = new Date('2026-04-24T20:00:00-04:00');
+
+function updateCountdown(){
+  const el = document.getElementById("countdown");
+  if(!el) return;
+  const now = new Date();
+  const diff = DRAFT_START - now;
+  if(diff <= 0){
+    el.innerHTML = `<span style="color:var(--green);font-size:13px">🏈 Draft is live!</span>`;
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const pad = n => String(n).padStart(2,'0');
+  el.innerHTML = d > 0
+    ? `<span style="color:var(--muted)">Draft in</span> <span style="color:var(--text)">${d}d ${pad(h)}h ${pad(m)}m ${pad(s)}s</span>`
+    : `<span style="color:var(--amber)">Draft in</span> <span style="color:var(--amber);font-size:15px">${pad(h)}:${pad(m)}:${pad(s)}</span>`;
+}
+
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+
 const TABS=[{id:"leaderboard",label:"Leaderboard"},{id:"participants",label:"Participants"},{id:"admin",label:"Commissioner",admin:true}];
 
 function setTab(id){ activeTab=id; renderAll(); }
