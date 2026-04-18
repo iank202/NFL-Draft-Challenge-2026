@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL Mock Draft Challenge 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root{
+  --bg:#f5f5f0;--surface:#fff;--s2:#f8f8f5;--s3:#efefea;
+  --border:#e5e5e0;--border2:#d0d0c8;
+  --accent:#1a56db;--accent2:#e04a1a;
+  --gold:#b8860b;--silver:#6b7280;--bronze:#92400e;
+  --green:#15803d;--amber:#b45309;--red:#dc2626;
+  --text:#0f0f14;--text2:#374151;--muted:#6b7280;
+  --df:'Barlow Condensed',sans-serif;--bf:'Barlow',sans-serif;--r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--bf);background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;}
+
+/* ── LAYOUT ── */
+header{background:var(--surface);border-bottom:2px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;}
+.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.main{padding:1.25rem 1.5rem;}
+.col3{display:grid;grid-template-columns:minmax(0,360px) minmax(0,300px) minmax(0,1fr);gap:1.25rem;align-items:start;}
+
+/* ── HEADER ── */
+.site-title{font-family:var(--df);font-size:24px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--accent);}
+.live-dot{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
+.live-dot .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.live-dot.live .dot{background:var(--green);box-shadow:0 0 7px rgba(21,128,61,.5);animation:pulse 2s infinite;}
+.live-dot.live{color:var(--green);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ── NAV ── */
+.nav-tab{font-family:var(--df);font-size:14px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:12px 20px;cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.nav-tab.admin-tab.active{color:var(--accent2);border-bottom-color:var(--accent2);}
+
+/* ── PANEL ── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.ph{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s2);}
+.ph-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.ph-badge{font-family:var(--df);font-size:12px;font-weight:700;color:var(--muted);background:var(--s3);border:1px solid var(--border);border-radius:4px;padding:2px 8px;}
+.scrollable{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.scrollable::-webkit-scrollbar{width:4px;}
+.scrollable::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.empty-state{padding:2rem;text-align:center;color:var(--muted);font-size:14px;}
+
+/* ── LEADERBOARD ── */
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:9px 14px;border-bottom:1px solid var(--border);text-align:left;background:var(--s2);}
+.lb-table td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.lb-table tr:last-child td{border-bottom:none;}
+.lb-table tr:hover td{background:var(--s2);}
+.lb-table tr{cursor:pointer;}
+.lb-rank{font-family:var(--df);font-size:20px;font-weight:800;}
+.rank-1{color:var(--gold);}  .rank-2{color:var(--silver);}  .rank-3{color:var(--bronze);}  .rank-n{color:var(--muted);}
+.lb-name{font-weight:600;font-size:16px;}
+.lb-pts{font-family:var(--df);font-size:28px;font-weight:800;line-height:1;}
+.lb-max{font-family:var(--df);font-size:14px;font-weight:600;color:var(--muted);}
+
+/* ── PRIZE POOL ── */
+.pot-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
+.pot-header{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.pot-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.pot-body{padding:6px 14px 10px;}
+.pot-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--border);}
+.pot-row:last-child{border-bottom:none;}
+.pot-label{font-size:12px;color:var(--muted);font-weight:500;}
+.pot-value{font-family:var(--df);font-size:15px;font-weight:700;color:var(--text2);}
+.pot-value.hi{color:var(--gold);}
+.pot-total{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0 2px;border-top:1px solid var(--border2);margin-top:2px;}
+.pot-total .pot-label{font-size:13px;font-weight:600;color:var(--text2);}
+.pot-total .pot-value{font-size:17px;}
+
+/* ── RULES CARD ── */
+.rules-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
+.rules-header{padding:8px 14px;border-bottom:1px solid var(--border);}
+.rules-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.rules-body{padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+.rule{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text2);line-height:1.45;}
+.rule-dot{font-family:var(--df);font-size:13px;font-weight:800;color:var(--accent);flex-shrink:0;width:18px;text-align:right;}
+
+/* ── DRAFT BOARD ── */
+.pick-row{display:grid;grid-template-columns:30px 38px 1fr 58px;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border);transition:background .1s;}
+.pick-row:last-child{border-bottom:none;}
+.pick-row:hover{background:var(--s2);}
+.pick-row.on-clock{background:rgba(26,86,219,.05);border-left:3px solid var(--accent);}
+.pick-num{font-family:var(--df);font-size:16px;font-weight:800;color:var(--muted);text-align:right;}
+.pick-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pick-empty{font-size:13px;color:var(--muted);font-style:italic;}
+.clock-lbl{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);}
+.trade-tag{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent2);background:rgba(224,74,26,.09);border:1px solid rgba(224,74,26,.22);border-radius:3px;padding:1px 5px;display:inline-block;margin-top:1px;}
+
+/* ── POSITION BADGES ── */
+.pos{display:inline-block;padding:3px 7px;border-radius:4px;font-family:var(--df);font-size:11px;font-weight:800;white-space:nowrap;border:1px solid transparent;}
+.pos-QB{background:#dbeafe;color:#1e40af;border-color:#bfdbfe;}
+.pos-WR{background:#ede9fe;color:#5b21b6;border-color:#ddd6fe;}
+.pos-RB{background:#dcfce7;color:#166534;border-color:#bbf7d0;}
+.pos-TE{background:#fef3c7;color:#92400e;border-color:#fde68a;}
+.pos-OT{background:#e0f2fe;color:#075985;border-color:#bae6fd;}
+.pos-IOL{background:#f0f9ff;color:#0c4a6e;border-color:#e0f2fe;}
+.pos-DL,.pos-DT{background:#fee2e2;color:#991b1b;border-color:#fecaca;}
+.pos-EDGE{background:#ffedd5;color:#9a3412;border-color:#fed7aa;}
+.pos-LB{background:#fef9c3;color:#854d0e;border-color:#fef08a;}
+.pos-CB{background:#f0fdf4;color:#14532d;border-color:#bbf7d0;}
+.pos-S{background:#ecfdf5;color:#064e3b;border-color:#a7f3d0;}
+.pos-ATH{background:#f9fafb;color:#374151;border-color:#e5e7eb;}
+
+/* ── BEST AVAILABLE ── */
+.avail-search{width:100%;padding:10px 14px;background:var(--s2);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:14px;outline:none;}
+.avail-search::placeholder{color:var(--muted);}
+.avail-row{display:flex;align-items:center;gap:9px;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.avail-row:last-child{border-bottom:none;}
+.avail-row:hover{background:var(--s2);}
+.avail-row.dragging{opacity:.3;}
+.avail-name{font-size:14px;font-weight:500;flex:1;}
+
+/* ── PARTICIPANT TAB ── */
+.p-subnav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.p-btn{font-family:var(--df);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted);transition:all .12s;}
+.p-btn:hover{color:var(--text);border-color:var(--accent);}
+.p-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;}
+.stat-label{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.stat-value{font-family:var(--df);font-size:40px;font-weight:800;line-height:1.1;}
+.pp-row{display:grid;grid-template-columns:30px 34px 1fr 58px 64px;gap:8px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.pp-row:hover{background:var(--s2);}
+.pp-row:last-child{border-bottom:none;}
+.pp-row.r3{background:rgba(21,128,61,.04);}
+.pp-row.r1{background:rgba(180,83,9,.04);}
+.pp-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pp-reason{font-size:11px;color:var(--muted);margin-top:1px;}
+.pp-pts{font-family:var(--df);font-weight:800;font-size:26px;line-height:1;text-align:right;}
+.pp-pts.v3{color:var(--green);}  .pp-pts.v1{color:var(--amber);}  .pp-pts.v0,.pp-pts.vn{color:#d1d5db;}
+.pp-max{font-family:var(--df);font-size:12px;font-weight:600;color:var(--muted);display:block;text-align:right;}
+
+/* ── ADMIN ── */
+.admin-gate{display:flex;align-items:center;justify-content:center;min-height:300px;}
+.admin-gate-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:2rem;width:100%;max-width:380px;}
+.gate-title{font-family:var(--df);font-size:22px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent2);margin-bottom:1.25rem;}
+.section-title{font-family:var(--df);font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);}
+.section{margin-bottom:1.5rem;}
+input[type=password],input[type=text],select,textarea{width:100%;padding:8px 11px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--bf);font-size:14px;outline:none;transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+textarea{min-height:110px;resize:vertical;font-size:13px;}
+.flabel{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;display:block;}
+.fgroup{margin-bottom:10px;}
+.btn{padding:9px 18px;border-radius:6px;font-family:var(--df);font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2);transition:all .15s;}
+.btn:hover{background:var(--s2);}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-accent:hover{background:#1344b8;}
+.btn-orange{background:var(--accent2);color:#fff;border-color:var(--accent2);}
+.btn-orange:hover{background:#c0420f;}
+.btn-danger{color:var(--red);border-color:rgba(220,38,38,.3);background:transparent;}
+.btn-danger:hover{background:rgba(220,38,38,.07);}
+.btn-sm{padding:4px 9px;font-size:11px;}
+.alert-ok{padding:10px 14px;border-radius:6px;font-size:14px;margin-bottom:1rem;background:#dcfce7;border:1px solid #bbf7d0;color:var(--green);}
+.pw-error{color:var(--red);font-size:13px;margin-top:7px;min-height:18px;}
+.admin-slot{display:grid;grid-template-columns:28px 72px 1fr 56px 58px auto;gap:6px;align-items:center;padding:5px 10px;border-bottom:1px solid var(--border);transition:background .15s;}
+.admin-slot:last-child{border-bottom:none;}
+.admin-slot.drop-over{background:#dbeafe;outline:2px dashed var(--accent);outline-offset:-2px;border-radius:4px;}
+.team-select{width:100%;padding:4px 5px;background:var(--s2);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--df);font-size:12px;font-weight:700;outline:none;cursor:pointer;}
+.team-select:focus{border-color:var(--accent);}
+.trade-cb{display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.trade-cb input[type=checkbox]{width:auto;padding:0;border:none;outline:none;cursor:pointer;margin:0;accent-color:var(--accent2);}
+.trade-cb label{font-size:11px;color:var(--muted);font-family:var(--df);font-weight:700;letter-spacing:.05em;cursor:pointer;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="site-title">NFL Mock Draft Challenge 2026</span>
+  <div class="live-dot" id="live-dot"><span class="dot"></span><span id="live-label">Pre-draft</span></div>
+</header>
+<div class="nav-tabs" id="nav-tabs"></div>
+<div class="main" id="main-content"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────────
+const DRAFT_ORDER=[
+  {pick:1,team:"LV"},{pick:2,team:"NYJ"},{pick:3,team:"ARI"},{pick:4,team:"TEN"},
+  {pick:5,team:"NYG"},{pick:6,team:"CLE"},{pick:7,team:"WAS"},{pick:8,team:"NO"},
+  {pick:9,team:"KC"},{pick:10,team:"CIN"},{pick:11,team:"MIA"},{pick:12,team:"DAL"},
+  {pick:13,team:"LAR"},{pick:14,team:"BAL"},{pick:15,team:"TB"},{pick:16,team:"NYJ"},
+  {pick:17,team:"DET"},{pick:18,team:"MIN"},{pick:19,team:"CAR"},{pick:20,team:"DAL"},
+  {pick:21,team:"PIT"},{pick:22,team:"LAC"},{pick:23,team:"PHI"},{pick:24,team:"CLE"},
+  {pick:25,team:"CHI"},{pick:26,team:"BUF"},{pick:27,team:"SF"},{pick:28,team:"HOU"},
+  {pick:29,team:"KC"},{pick:30,team:"MIA"},{pick:31,team:"NE"},{pick:32,team:"SEA"}
+];
+
+const ALL_TEAMS=["ARI","ATL","BAL","BUF","CAR","CHI","CIN","CLE","DAL","DEN","DET","GB","HOU","IND","JAX","KC","LAC","LAR","LV","MIA","MIN","NE","NO","NYG","NYJ","PHI","PIT","SEA","SF","TB","TEN","WAS"];
+
+const TEAM_COLORS={
+  ARI:["#97233F","#FFB612"],ATL:["#A71930","#000000"],BAL:["#241773","#9E7C0C"],
+  BUF:["#00338D","#C60C30"],CAR:["#0085CA","#101820"],CHI:["#0B162A","#C83803"],
+  CIN:["#FB4F14","#000000"],CLE:["#311D00","#FF3C00"],DAL:["#003594","#869397"],
+  DEN:["#FB4F14","#002244"],DET:["#0076B6","#B0B7BC"],GB:["#203731","#FFB612"],
+  HOU:["#03202F","#A71930"],IND:["#002C5F","#A2AAAD"],JAX:["#101820","#D7A22A"],
+  KC:["#E31837","#FFB81C"],LAC:["#0080C6","#FFC20E"],LAR:["#003594","#FFA300"],
+  LV:["#000000","#A5ACAF"],MIA:["#008E97","#FC4C02"],MIN:["#4F2683","#FFC62F"],
+  NE:["#002244","#C60C30"],NO:["#D3BC8D","#101820"],NYG:["#0B2265","#A71930"],
+  NYJ:["#125740","#000000"],PHI:["#004C54","#A5ACAF"],PIT:["#FFB612","#101820"],
+  SEA:["#002244","#69BE28"],SF:["#AA0000","#B3995D"],TB:["#D50A0A","#34302B"],
+  TEN:["#0C2340","#4B92DB"],WAS:["#5A1414","#FFB612"]
+};
+
+const ALL_PLAYERS=[
+  {name:"Fernando Mendoza",pos:"QB"},{name:"Rueben Bain Jr.",pos:"EDGE"},{name:"Arvell Reese",pos:"EDGE"},
+  {name:"Kadyn Proctor",pos:"DT"},{name:"Spencer Fano",pos:"OT"},{name:"Jermod McCoy",pos:"CB"},
+  {name:"Jeremiyah Love",pos:"RB"},{name:"Caleb Downs",pos:"S"},{name:"Sonny Styles",pos:"LB"},
+  {name:"Avieon Terrell",pos:"CB"},{name:"Ty Simpson",pos:"QB"},{name:"KC Concepcion",pos:"WR"},
+  {name:"Caleb Lomu",pos:"DT"},{name:"Mansoor Delane",pos:"CB"},{name:"Olaivavega Ioane",pos:"IOL"},
+  {name:"Francis Mauigoa",pos:"OT"},{name:"Makai Lemon",pos:"WR"},{name:"Carnell Tate",pos:"WR"},
+  {name:"Peter Woods",pos:"DL"},{name:"David Bailey",pos:"EDGE"},{name:"Omar Cooper Jr.",pos:"WR"},
+  {name:"Emmanuel McNeil-Warren",pos:"S"},{name:"Jordyn Tyson",pos:"WR"},{name:"Kenyon Sadiq",pos:"TE"},
+  {name:"Monroe Freeling",pos:"OT"},{name:"D'Angelo Ponds",pos:"CB"},{name:"Chris Johnson",pos:"CB"},
+  {name:"Lee Hunter",pos:"DL"},{name:"Blake Miller",pos:"OT"},{name:"Akheem Mesidor",pos:"EDGE"},
+  {name:"Max Iheanachor",pos:"DT"},{name:"Kayden McDonald",pos:"DL"},{name:"Cashius Howell",pos:"EDGE"},
+  {name:"Keldric Faulk",pos:"EDGE"},{name:"Anthony Hill Jr.",pos:"LB"},{name:"Jake Golday",pos:"LB"},
+  {name:"Denzel Boston",pos:"WR"},{name:"Dillon Thieneman",pos:"S"},{name:"Josiah Trotter",pos:"LB"},
+  {name:"Colton Hood",pos:"CB"},{name:"CJ Allen",pos:"LB"},{name:"Christen Miller",pos:"DL"},
+  {name:"Keith Abney II",pos:"CB"},{name:"R Mason Thomas",pos:"DL"},{name:"Connor Lew",pos:"IOL"},
+  {name:"Germie Bernard",pos:"WR"},{name:"Trey Zuhn III",pos:"IOL"},{name:"Caleb Banks",pos:"DL"},
+  {name:"Brenen Thompson",pos:"WR"},{name:"T.J. Parker",pos:"EDGE"},{name:"Chase Bisontis",pos:"IOL"},
+  {name:"Emmanuel Pregnon",pos:"IOL"},{name:"Keionte Scott",pos:"S"},{name:"Anthony Lucas",pos:"EDGE"},
+  {name:"Kyle Louis",pos:"LB"},{name:"Genesis Smith",pos:"S"},{name:"Jadarian Price",pos:"RB"},
+  {name:"Malachi Lawrence",pos:"LB"},{name:"Zachariah Branch",pos:"WR"},{name:"Caleb Tiernan",pos:"OT"},
+  {name:"Brandon Cisse",pos:"CB"},{name:"Chris Brazzell II",pos:"WR"},{name:"A.J. Haulcy",pos:"S"},
+  {name:"Malachi Fields",pos:"WR"},{name:"Jaishawn Barham",pos:"LB"},{name:"Gabe Jacas",pos:"EDGE"},
+  {name:"Michael Trigg",pos:"TE"},{name:"Eli Stowers",pos:"TE"},{name:"Eric McAlister",pos:"WR"},
+  {name:"Kage Casey",pos:"IOL"},{name:"Treydan Stukes",pos:"CB"},{name:"Chris McClellan",pos:"DL"},
+  {name:"Joshua Josephs",pos:"EDGE"},{name:"Devin Moore",pos:"CB"},{name:"Carver Willis",pos:"OT"},
+  {name:"Zion Young",pos:"EDGE"},{name:"Romello Height",pos:"EDGE"},{name:"Gennings Dunker",pos:"IOL"},
+  {name:"Julian Neal",pos:"CB"},{name:"Rayshaun Benny",pos:"DL"},{name:"Antonio Williams",pos:"WR"},
+  {name:"Elijah Sarratt",pos:"WR"},{name:"Jacob Rodriguez",pos:"LB"},{name:"Nate Boerkircher",pos:"TE"},
+  {name:"Billy Schrauth",pos:"IOL"},{name:"Austin Barber",pos:"OT"},{name:"Domonique Orange",pos:"DL"},
+  {name:"Max Klare",pos:"TE"},{name:"Keyron Crawford",pos:"EDGE"},{name:"Alex Harkey",pos:"IOL"},
+  {name:"Dontay Corleone",pos:"DL"},{name:"Ethan Burke",pos:"EDGE"},{name:"Cole Payton",pos:"QB"},
+  {name:"Nick Barrett",pos:"DL"},{name:"Zakee Wheatley",pos:"S"},{name:"Kamari Ramsey",pos:"S"},
+  {name:"Parker Brailsford",pos:"IOL"},{name:"Derrick Moore",pos:"EDGE"},{name:"Will Lee III",pos:"CB"},
+  {name:"Garrett Nussmeier",pos:"QB"},{name:"Keylan Rutledge",pos:"IOL"},{name:"Chris Bell",pos:"WR"},
+  {name:"Darrell Jackson Jr.",pos:"DL"},{name:"Josh Cuevas",pos:"TE"},{name:"Dani Dennis-Sutton",pos:"EDGE"},
+  {name:"Kevin Coleman Jr.",pos:"WR"},{name:"Jack Endries",pos:"TE"},{name:"Fa'alili Fa'amoe",pos:"OT"},
+  {name:"Keagen Trost",pos:"IOL"},{name:"Malik Muhammad",pos:"CB"},{name:"LT Overton",pos:"DL"},
+  {name:"Nadame Tucker",pos:"EDGE"},{name:"Kaleb Proctor",pos:"DL"},{name:"Lance Mason",pos:"TE"},
+  {name:"Jake Slaughter",pos:"IOL"},{name:"Clay Patterson",pos:"DL"},{name:"Aamil Wagner",pos:"OT"},
+  {name:"Eric Rivers",pos:"WR"},{name:"Brian Parker II",pos:"IOL"},{name:"Jager Burton",pos:"IOL"},
+  {name:"Jordan van den Berg",pos:"DL"},{name:"Brent Austin",pos:"CB"},{name:"Kaytron Allen",pos:"RB"},
+  {name:"Eli Raridon",pos:"TE"},{name:"Jonah Coleman",pos:"RB"},{name:"Tyreak Sapp",pos:"LB"},
+  {name:"Will Kacmarek",pos:"TE"},{name:"Matt Gulbin",pos:"IOL"},{name:"Jude Bowry",pos:"OT"},
+  {name:"J.C. Davis",pos:"OT"},{name:"Drew Shelton",pos:"OT"},{name:"Cade Klubnik",pos:"QB"},
+  {name:"Davison Igbinosun",pos:"CB"},{name:"Chris Adams",pos:"IOL"},{name:"Tim Keenan III",pos:"DL"},
+  {name:"Josh Cameron",pos:"WR"},{name:"Logan Jones",pos:"IOL"},{name:"Lander Barton",pos:"LB"},
+  {name:"Oscar Delp",pos:"TE"},{name:"Vinny Anthony II",pos:"WR"},{name:"Joe Royer",pos:"TE"},
+  {name:"Demond Claiborne",pos:"RB"},{name:"Harold Perkins Jr.",pos:"LB"},{name:"Daylen Everette",pos:"CB"},
+  {name:"Chandler Rivers",pos:"CB"},{name:"Wesley Williams",pos:"EDGE"},{name:"Ar'maj Reed-Adams",pos:"IOL"},
+  {name:"Robert Spears-Jennings",pos:"S"},{name:"DeVonta Smith",pos:"CB"},{name:"Zxavian Harris",pos:"DL"},
+  {name:"Markel Bell",pos:"OT"},{name:"Red Murdock",pos:"LB"},{name:"Devon Marshall",pos:"CB"},
+  {name:"Skyler Bell",pos:"WR"},{name:"Ted Hurst",pos:"WR"},{name:"Jeff Caldwell",pos:"WR"},
+  {name:"Jalen Farmer",pos:"IOL"},{name:"Pat Coogan",pos:"IOL"},{name:"Dallen Bentley",pos:"TE"},
+  {name:"Cian Slone",pos:"LB"},{name:"Emmett Johnson",pos:"RB"},{name:"Caden Curry",pos:"EDGE"},
+  {name:"Bryce Lance",pos:"WR"},{name:"Bakyne Coly",pos:"OT"},{name:"Reggie Virgil",pos:"WR"},
+  {name:"Drew Allar",pos:"QB"},{name:"Ja'Kobi Lane",pos:"WR"},{name:"Skyler Gill-Howard",pos:"DL"},
+  {name:"Isaiah World",pos:"OT"},{name:"Travis Burke",pos:"OT"},{name:"Marlin Klein",pos:"TE"},
+  {name:"Deion Burks",pos:"WR"},{name:"Gracen Halton",pos:"DL"},{name:"Keyshaun Elliott",pos:"LB"},
+  {name:"Justin Joly",pos:"TE"},{name:"DeMonte Capehart",pos:"DL"},{name:"Deontae Lawson",pos:"LB"},
+  {name:"Bud Clark",pos:"S"},{name:"Beau Stephens",pos:"IOL"},{name:"Bryce Boettcher",pos:"LB"},
+  {name:"Mike Washington Jr.",pos:"RB"},{name:"Barion Brown",pos:"WR"},{name:"Seth McGowan",pos:"RB"},
+  {name:"Hezekiah Masses",pos:"CB"},{name:"Bishop Fitzgerald",pos:"S"},{name:"Aaron Anderson",pos:"WR"},
+  {name:"Sam Roush",pos:"TE"},{name:"Robert Henry Jr.",pos:"RB"},{name:"Albert Regis",pos:"DL"},
+  {name:"Dametrious Crownover",pos:"OT"},{name:"Dae'Quan Wright",pos:"TE"},{name:"VJ Payne",pos:"S"},
+  {name:"Tyren Montgomery",pos:"WR"},{name:"Taurean York",pos:"LB"},{name:"Michael Taaffe",pos:"S"},
+  {name:"Zavion Thomas",pos:"WR"},{name:"Nicholas Singleton",pos:"RB"},{name:"Carson Beck",pos:"QB"},
+  {name:"Tyler Onyedim",pos:"DL"},{name:"TJ Hall",pos:"CB"}
+];
+
+const ADMIN_PASS = "commissioner2026";
+
+// ─────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────
+const SK = 'nfl2026v5';
+function loadState(){ try{ return JSON.parse(localStorage.getItem(SK))||{}; }catch{ return{}; } }
+function saveState(){ localStorage.setItem(SK,JSON.stringify(state)); }
+
+let state = loadState();
+if(!state.slots)        state.slots = DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}}));
+if(!state.participants) state.participants = [{name:"Sample 2026 Participant",picks:DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:""}))}];
+if(!state.entryFee)     state.entryFee = 50;
+
+let adminUnlocked = false;
+let activeTab = "leaderboard";
+let activeParticipant = state.participants[0]?.name || "";
+let availFilter = "";
+
+// drag state (player from avail list onto slot)
+let dragPlayerData = null;
+
+// ─────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────
+const norm = s => (s||"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");
+const money = n => '$'+n.toLocaleString();
+
+function posBadge(pos){
+  return `<span class="pos pos-${pos||'QB'}">${pos||'?'}</span>`;
+}
+
+function teamBadge(team, size=34){
+  const [bg,bd] = TEAM_COLORS[team]||["#888","#ccc"];
+  const fs = size<=28?9:10;
+  return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:5px;background:${bg};border:2px solid ${bd};font-family:var(--df);font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0">${team}</span>`;
+}
+
+function getDraftedSet(){ return new Set(state.slots.filter(s=>s.player).map(s=>norm(s.player))); }
+function getAvail(){ const d=getDraftedSet(); return ALL_PLAYERS.filter(p=>!d.has(norm(p.name))); }
+function getSlotByPick(){ const m={}; state.slots.forEach(s=>m[s.pick]=s); return m; }
+
+// ─────────────────────────────────────────────────────────────────
+// SCORING
+// ─────────────────────────────────────────────────────────────────
+function scoreParticipant(p){
+  const drafted = getDraftedSet();
+  const byPick  = getSlotByPick();
+  const allMocked = p.picks.map(pk=>norm(pk.player));
+  const dupes = new Set(allMocked.filter((v,i,a)=>v&&a.indexOf(v)!==i));
+
+  let total=0, maxPts=0;
+
+  const pickScores = p.picks.map(pk=>{
+    const pn = norm(pk.player);
+
+    // Duplicate mocks are void
+    if(dupes.has(pn)) return {...pk, pts:0, maxPts:0, reason:"void — duplicate mock"};
+
+    const slot = byPick[pk.pick];
+
+    if(slot && slot.player){
+      // This pick slot has been decided — compute score
+      const ovKey = `${pk.pick}_${norm(p.name)}`;
+      const ov = slot.overrides && slot.overrides[ovKey];
+      let pts, reason;
+
+      if(ov !== undefined){
+        pts = ov; reason = "manual override";
+      } else if(norm(slot.player)===pn && slot.team===pk.team){
+        pts = 3; reason = "correct player + team ✓";
+      } else if(norm(slot.player)===pn && slot.team!==pk.team){
+        // Right player, wrong team — trade moved them
+        pts = 1; reason = "correct player, team traded";
+      } else if(slot.team===pk.team && slot.pos===pk.pos){
+        // Right team, right position, different player
+        pts = 1; reason = "correct position, wrong player";
+      } else {
+        pts = 0; reason = "";
+      }
+
+      total += pts; maxPts += pts;
+      return {...pk, pts, maxPts:pts, reason};
+
+    } else {
+      // Pick slot not yet decided — compute maximum possible
+      let mp;
+      if(!pn)               mp = 0; // no player mocked
+      else if(drafted.has(pn)) mp = 1; // player already drafted elsewhere — best case is position match at this pick
+      else                   mp = 3; // player still available — full points possible
+
+      maxPts += mp;
+      return {...pk, pts:null, maxPts:mp, reason: (drafted.has(pn)&&pn) ? "player already drafted elsewhere" : ""};
+    }
+  });
+
+  return {name:p.name, total, maxPts, pickScores};
+}
+
+function getAllScores(){
+  return state.participants
+    .map(p=>scoreParticipant(p))
+    .sort((a,b)=>b.total-a.total || b.maxPts-a.maxPts || a.name.localeCompare(b.name));
+}
+
+// ─────────────────────────────────────────────────────────────────
+// PAYOUT
+// ─────────────────────────────────────────────────────────────────
+function getPayout(){
+  const n   = state.participants.length;
+  const fee = state.entryFee || 50;
+  const pot = n * fee;
+  let payouts;
+  if(n <= 5)      payouts = [{place:"1st", pct:1.0}];
+  else if(n <= 9) payouts = [{place:"1st", pct:0.75},{place:"2nd", pct:0.25}];
+  else            payouts = [{place:"1st", pct:0.65},{place:"2nd", pct:0.25},{place:"3rd", pct:0.10}];
+  return {pot, fee, payouts};
+}
+
+// ─────────────────────────────────────────────────────────────────
+// RENDER — LEADERBOARD TAB
+// ─────────────────────────────────────────────────────────────────
+function renderLeaderboard(){
+  const scores     = getAllScores();
+  const avail      = getAvail();
+  const pickedCount= state.slots.filter(s=>s.player).length;
+  const nextSlot   = state.slots.find(s=>!s.player);
+  const {pot,fee,payouts} = getPayout();
+
+  // Leaderboard table
+  let lbRows = scores.length
+    ? scores.map((s,i)=>{
+        const rc = i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"rank-n";
+        return `<tr onclick="viewParticipant('${s.name.replace(/'/g,"\\'")}')">
+          <td><span class="lb-rank ${rc}">${i+1}</span></td>
+          <td><span class="lb-name">${s.name}</span></td>
+          <td><span class="lb-pts">${s.total}</span></td>
+          <td><span class="lb-max">${s.maxPts}</span></td>
+        </tr>`;
+      }).join("")
+    : `<tr><td colspan="4"><div class="empty-state">No participants yet.</div></td></tr>`;
+
+  const lbHtml = `<table class="lb-table">
+    <thead><tr><th width="36">#</th><th>Participant</th><th>Points</th><th>Max Pts</th></tr></thead>
+    <tbody>${lbRows}</tbody>
+  </table>`;
+
+  // Prize pool card — total pot first, then places
+  const potHtml = `<div class="pot-card">
+    <div class="pot-header">
+      <span class="pot-title">Prize Pool</span>
+      <span style="font-family:var(--df);font-size:11px;color:var(--muted)">${money(fee)} entry · ${state.participants.length} entries</span>
+    </div>
+    <div class="pot-body">
+      <div class="pot-total"><span class="pot-label">Total pot</span><span class="pot-value">${money(pot)}</span></div>
+      ${payouts.map(p=>`<div class="pot-row">
+        <span class="pot-label">${p.place} place</span>
+        <span class="pot-value hi">${money(Math.round(pot*p.pct))}</span>
+      </div>`).join("")}
+    </div>
+  </div>`;
+
+  // Rules card
+  const rulesHtml = `<div class="rules-card">
+    <div class="rules-header"><span class="rules-title">Scoring Rules</span></div>
+    <div class="rules-body">
+      <div class="rule"><span class="rule-dot">3</span><span>Points for correct player <em>and</em> team (positions are per CBS Sports official list).</span></div>
+      <div class="rule"><span class="rule-dot">1</span><span>Point for correct position but wrong player (same team).</span></div>
+      <div class="rule"><span class="rule-dot">1</span><span>Point for correct player drafted by a different team due to a trade.</span></div>
+      <div class="rule"><span class="rule-dot">1</span><span>Point if you mocked a player to a team with multiple picks and they were taken in a different round-1 slot by that same team.</span></div>
+      <div class="rule"><span class="rule-dot">0</span><span>Points if a team trades out of the first round — that pick is null. If a team trades multiple picks to move up, you earn points for correctly predicting either pick.</span></div>
+      <div class="rule"><span class="rule-dot">✕</span><span>If you mock the same player in multiple slots, all instances are void.</span></div>
+    </div>
+  </div>`;
+
+  // Draft board
+  const boardHtml = state.slots.map(slot=>{
+    const isNext = nextSlot && slot.pick===nextSlot.pick;
+    return `<div class="pick-row${isNext?" on-clock":""}">
+      <div class="pick-num">${slot.pick}</div>
+      <div>${teamBadge(slot.team)}</div>
+      <div style="min-width:0">
+        ${slot.player
+          ? `<div class="pick-name">${slot.player}</div>${slot.isTrade?`<span class="trade-tag">Trade</span>`:""}`
+          : isNext ? `<span class="clock-lbl">On the clock</span>` : `<span class="pick-empty">—</span>`}
+        ${slot.tradeNote&&slot.player ? `<div style="font-size:11px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}
+      </div>
+      <div>${slot.player ? posBadge(slot.pos) : ""}</div>
+    </div>`;
+  }).join("");
+
+  // Best available
+  const filtered = avail.filter(p=>!availFilter||p.name.toLowerCase().includes(availFilter.toLowerCase()));
+  const availHtml = filtered.slice(0,120).map(p=>
+    `<div class="avail-row">${posBadge(p.pos)}<span class="avail-name">${p.name}</span></div>`
+  ).join("") || `<div class="empty-state">No players match.</div>`;
+
+  return `<div class="col3">
+    <div>
+      <div class="panel">
+        <div class="ph"><span class="ph-title">Leaderboard</span><span class="ph-badge">${state.participants.length} entries</span></div>
+        <div class="scrollable" style="max-height:calc(100vh - 420px)">${lbHtml}</div>
+      </div>
+      ${potHtml}
+      ${rulesHtml}
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph"><span class="ph-title">2026 Draft Board</span><span class="ph-badge">${pickedCount}/32</span></div>
+        <div class="scrollable" style="max-height:calc(100vh - 185px)">${boardHtml}</div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph"><span class="ph-title">Best Available</span><span class="ph-badge">${avail.length}</span></div>
+        <input class="avail-search" placeholder="Filter players…" id="lb-avail-search" value="${availFilter}" oninput="setAvailFilter(this.value)">
+        <div class="scrollable" style="max-height:calc(100vh - 225px)">${availHtml}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// RENDER — PARTICIPANTS TAB
+// ─────────────────────────────────────────────────────────────────
+function viewParticipant(name){ activeParticipant=name; setTab("participants"); }
+function selectParticipant(name){ activeParticipant=name; renderAll(); }
+
+function renderParticipants(){
+  const scores = getAllScores();
+  const subnav = `<div class="p-subnav">${
+    state.participants.map(p=>
+      `<button class="p-btn${activeParticipant===p.name?" active":""}" onclick="selectParticipant('${p.name.replace(/'/g,"\\'")}');">${p.name}</button>`
+    ).join("")
+  }</div>`;
+
+  if(!activeParticipant || !state.participants.length)
+    return subnav + `<div class="empty-state" style="padding:3rem">No participants yet.</div>`;
+
+  const s = scores.find(x=>x.name===activeParticipant);
+  if(!s) return subnav;
+  const rank = scores.indexOf(s)+1;
+
+  const rows = s.pickScores.map(pk=>{
+    const decided = pk.pts !== null;
+    const rc = decided&&pk.pts===3?"r3":decided&&pk.pts===1?"r1":"";
+    const pc = pk.pts===3?"v3":pk.pts===1?"v1":decided?"v0":"vn";
+    return `<div class="pp-row ${rc}">
+      <div class="pick-num" style="font-size:14px;font-weight:800">${pk.pick}</div>
+      <div>${teamBadge(pk.team,28)}</div>
+      <div style="min-width:0">
+        <div class="pp-name">${pk.player||"—"}</div>
+        ${pk.reason ? `<div class="pp-reason">${pk.reason}</div>` : ""}
+      </div>
+      <div>${posBadge(pk.pos)}</div>
+      <div>
+        <div class="pp-pts ${pc}">${decided ? pk.pts : "–"}</div>
+        <span class="pp-max">max ${pk.maxPts}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `${subnav}
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem">
+    <div class="stat-card"><div class="stat-label">Points</div><div class="stat-value">${s.total}</div></div>
+    <div class="stat-card"><div class="stat-label">Max Points</div><div class="stat-value">${s.maxPts}</div></div>
+    <div class="stat-card"><div class="stat-label">Rank</div><div class="stat-value">${rank}<span style="font-size:20px;color:var(--muted);font-weight:600"> of ${scores.length}</span></div></div>
+  </div>
+  <div class="panel">
+    <div style="display:grid;grid-template-columns:30px 34px 1fr 58px 64px;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--s2)">
+      <div class="flabel" style="margin:0">#</div>
+      <div class="flabel" style="margin:0">Team</div>
+      <div class="flabel" style="margin:0">Mock Pick</div>
+      <div class="flabel" style="margin:0">Pos</div>
+      <div class="flabel" style="margin:0;text-align:right">Pts / Max</div>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// RENDER — ADMIN TAB
+// ─────────────────────────────────────────────────────────────────
+function renderAdmin(){
+  if(!adminUnlocked) return `<div class="admin-gate"><div class="admin-gate-card">
+    <div class="gate-title">Commissioner Access</div>
+    <div class="fgroup"><label class="flabel">Password</label>
+      <input type="password" id="admin-pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')tryAdminLogin()">
+    </div>
+    <button class="btn btn-orange" style="width:100%" onclick="tryAdminLogin()">Unlock</button>
+    <div class="pw-error" id="pw-error"></div>
+  </div></div>`;
+
+  const avail      = getAvail();
+  const filtered   = avail.filter(p=>!availFilter||p.name.toLowerCase().includes(availFilter.toLowerCase()));
+  const pickedCount= state.slots.filter(s=>s.player).length;
+
+  const slotRows = state.slots.map((slot,idx)=>{
+    const filled = !!slot.player;
+    const teamSelect = `<select class="team-select" onchange="changeTeam(${idx},this.value)">${
+      ALL_TEAMS.map(t=>`<option value="${t}"${t===slot.team?" selected":""}>${t}</option>`).join("")
+    }</select>`;
+    return `<div class="admin-slot" id="aslot-${idx}"
+      ondragover="slotDragOver(event,${idx})" ondrop="slotDrop(event,${idx})" ondragleave="slotDragLeave(${idx})">
+      <div class="pick-num" style="font-size:14px;font-weight:800;text-align:right">${slot.pick}</div>
+      <div>${teamSelect}</div>
+      <div style="min-width:0">
+        ${filled
+          ? `<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${slot.player}</div>
+             ${slot.tradeNote ? `<div style="font-size:10px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}`
+          : `<span style="color:var(--muted);font-size:12px;font-style:italic">← drag player here</span>`}
+      </div>
+      <div>${filled ? posBadge(slot.pos) : ""}</div>
+      <div>${filled ? `<div class="trade-cb">
+        <input type="checkbox" id="tc-${idx}" ${slot.isTrade?"checked":""} onchange="toggleTrade(${idx},this.checked)">
+        <label for="tc-${idx}">Trade</label>
+      </div>` : ""}</div>
+      <div style="display:flex;gap:4px;align-items:center">
+        ${filled ? `<button class="btn btn-sm" onclick="editNote(${idx})" style="padding:4px 7px">✎</button>
+                    <button class="btn btn-sm btn-danger" onclick="clearSlot(${idx})">✕</button>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+
+  const availRows = filtered.slice(0,120).map(p=>
+    `<div class="avail-row" draggable="true"
+      ondragstart="playerDragStart(event,'${p.name.replace(/'/g,"\\'")}','${p.pos}')"
+      ondragend="playerDragEnd(event)">
+      ${posBadge(p.pos)}<span class="avail-name">${p.name}</span>
+      <span style="font-size:11px;color:var(--muted);margin-left:auto;flex-shrink:0">drag →</span>
+    </div>`
+  ).join("") || `<div class="empty-state">No players match.</div>`;
+
+  const partList = state.participants.length
+    ? state.participants.map((p,i)=>
+        `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border)">
+          <span style="font-size:15px;font-weight:600">${p.name}</span>
+          <button class="btn btn-sm btn-danger" onclick="removeParticipant(${i})">Remove</button>
+        </div>`).join("")
+    : `<div class="empty-state">None yet.</div>`;
+
+  const ovPickOpts = state.slots.filter(s=>s.player).map(s=>`<option value="${s.pick}">Pick ${s.pick} — ${s.team}: ${s.player}</option>`).join("");
+  const ovPartOpts = state.participants.map(p=>`<option value="${norm(p.name)}">${p.name}</option>`).join("");
+
+  return `<div class="alert-ok">Commissioner mode · Auto-saves to this browser ·
+    <a href="#" onclick="exportState();return false" style="color:var(--green);font-weight:700">Export backup</a> ·
+    <a href="#" onclick="document.getElementById('imp-file').click();return false" style="color:var(--green);font-weight:700">Import backup</a>
+    <input type="file" id="imp-file" accept=".json" style="display:none" onchange="importState(this)">
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:1.5rem;align-items:start">
+    <div>
+      <div class="section-title">Draft Board — change Team dropdown for trades · drag players from Best Available onto slots</div>
+      <div style="display:grid;grid-template-columns:1fr 250px;gap:1rem;align-items:start">
+        <div class="panel">
+          <div style="display:grid;grid-template-columns:28px 72px 1fr 56px 58px auto;gap:6px;padding:7px 10px;border-bottom:1px solid var(--border);background:var(--s2)">
+            <div class="flabel" style="margin:0">#</div>
+            <div class="flabel" style="margin:0">Team</div>
+            <div class="flabel" style="margin:0">Player</div>
+            <div class="flabel" style="margin:0">Pos</div>
+            <div class="flabel" style="margin:0">Trade?</div>
+            <div></div>
+          </div>
+          <div class="scrollable" style="max-height:calc(100vh - 220px)">${slotRows}</div>
+        </div>
+        <div class="panel" style="position:sticky;top:68px">
+          <div class="ph"><span class="ph-title">Best Available</span><span class="ph-badge">${avail.length}</span></div>
+          <input class="avail-search" placeholder="Filter…" id="admin-avail-search" value="${availFilter}" oninput="setAvailFilter(this.value)">
+          <div class="scrollable" style="max-height:calc(100vh - 265px)">${availRows}</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section">
+        <div class="section-title">Settings</div>
+        <div class="fgroup"><label class="flabel">Entry fee ($)</label>
+          <input type="text" id="entry-fee" value="${state.entryFee||50}" style="width:120px" onchange="updateFee(this.value)">
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Add Participant</div>
+        <div class="fgroup"><label class="flabel">Name</label><input type="text" id="pname" placeholder="e.g. John S"></div>
+        <div class="fgroup"><label class="flabel">Paste picks (Pick# · Tab · Team · Tab · Player · Tab · Position)</label>
+          <textarea id="ppaste" placeholder="1&#9;LV&#9;Fernando Mendoza&#9;QB&#10;2&#9;NYJ&#9;Rueben Bain Jr.&#9;EDGE"></textarea>
+        </div>
+        <button class="btn btn-orange" onclick="addParticipant()">Add Participant</button>
+        <div id="padd-msg" style="font-size:13px;margin-top:8px;min-height:18px"></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Participants (${state.participants.length})</div>
+        <div class="panel" style="max-height:220px;overflow-y:auto">${partList}</div>
+      </div>
+      ${ovPickOpts ? `<div class="section">
+        <div class="section-title">Manual Score Override</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">For trade-rule edge cases requiring manual judgment.</p>
+        <div class="fgroup"><label class="flabel">Pick</label><select id="ov-pick">${ovPickOpts}</select></div>
+        <div class="fgroup"><label class="flabel">Participant</label><select id="ov-part">${ovPartOpts}</select></div>
+        <div class="fgroup"><label class="flabel">Points</label>
+          <select id="ov-pts"><option value="0">0 pts</option><option value="1">1 pt</option><option value="3">3 pts</option></select>
+        </div>
+        <button class="btn btn-accent" onclick="applyOverride()">Apply Override</button>
+        <div id="ov-msg" style="font-size:13px;color:var(--green);margin-top:6px;min-height:18px"></div>
+      </div>` : ""}
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// DRAG — player from avail list onto slot
+// ─────────────────────────────────────────────────────────────────
+function playerDragStart(e,name,pos){
+  dragPlayerData={name,pos};
+  e.dataTransfer.effectAllowed="copy";
+  e.dataTransfer.setData("text/plain","player");
+  setTimeout(()=>e.target.classList.add("dragging"),0);
+}
+function playerDragEnd(e){ e.target.classList.remove("dragging"); dragPlayerData=null; }
+
+function slotDragOver(e,idx){ e.preventDefault(); document.getElementById(`aslot-${idx}`)?.classList.add("drop-over"); }
+function slotDragLeave(idx){ document.getElementById(`aslot-${idx}`)?.classList.remove("drop-over"); }
+function slotDrop(e,idx){
+  e.preventDefault();
+  document.getElementById(`aslot-${idx}`)?.classList.remove("drop-over");
+  if(!dragPlayerData) return;
+  state.slots[idx].player = dragPlayerData.name;
+  state.slots[idx].pos    = dragPlayerData.pos;
+  dragPlayerData = null;
+  saveState(); renderAll();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ADMIN ACTIONS
+// ─────────────────────────────────────────────────────────────────
+function tryAdminLogin(){
+  if(document.getElementById("admin-pw")?.value===ADMIN_PASS){ adminUnlocked=true; renderAll(); }
+  else{ const el=document.getElementById("pw-error"); if(el) el.textContent="Incorrect password"; }
+}
+
+function changeTeam(idx,team){ state.slots[idx].team=team; saveState(); renderAll(); }
+function toggleTrade(idx,checked){ state.slots[idx].isTrade=checked; saveState(); }
+function clearSlot(idx){
+  Object.assign(state.slots[idx],{player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}});
+  saveState(); renderAll();
+}
+function editNote(idx){
+  const n=prompt("Trade note (leave blank to clear):",state.slots[idx].tradeNote||"");
+  if(n===null) return;
+  state.slots[idx].tradeNote=n.trim();
+  saveState(); renderAll();
+}
+function updateFee(v){ const n=parseInt(v); if(!isNaN(n)&&n>0){state.entryFee=n;saveState();} }
+
+function applyOverride(){
+  const pick=parseInt(document.getElementById("ov-pick")?.value);
+  const part=document.getElementById("ov-part")?.value;
+  const pts=parseInt(document.getElementById("ov-pts")?.value);
+  const slot=state.slots.find(s=>s.pick===pick);
+  if(!slot) return;
+  if(!slot.overrides) slot.overrides={};
+  slot.overrides[`${pick}_${part}`]=pts;
+  saveState();
+  const el=document.getElementById("ov-msg");
+  if(el) el.textContent=`Override set: Pick ${pick} → ${part} = ${pts} pts`;
+  renderAll();
+}
+
+function addParticipant(){
+  const name=document.getElementById("pname")?.value?.trim();
+  const raw=document.getElementById("ppaste")?.value?.trim();
+  const msg=document.getElementById("padd-msg");
+  const err=t=>{if(msg){msg.style.color="var(--red)";msg.textContent=t;}};
+  const ok =t=>{if(msg){msg.style.color="var(--green)";msg.textContent=t;}};
+  if(!name)return err("Enter a name.");
+  if(!raw) return err("Paste pick data.");
+  if(state.participants.find(p=>norm(p.name)===norm(name))) return err("Name already exists.");
+  const picks=raw.split("\n").map(l=>l.trim()).filter(Boolean).reduce((acc,line)=>{
+    const parts=line.split("\t");
+    const pn=parseInt(parts[0]);
+    if(!isNaN(pn)) acc.push({pick:pn,team:parts[1]?.trim()||"",player:parts[2]?.trim()||"",pos:parts[3]?.trim()||""});
+    return acc;
+  },[]);
+  if(picks.length<20) return err(`Only ${picks.length} valid rows — expected 32.`);
+  state.participants.push({name,picks});
+  activeParticipant=name;
+  saveState(); ok(`${name} added with ${picks.length} picks!`); renderAll();
+}
+
+function removeParticipant(idx){
+  const rm=state.participants.splice(idx,1)[0];
+  if(activeParticipant===rm?.name) activeParticipant=state.participants[0]?.name||"";
+  saveState(); renderAll();
+}
+
+function setAvailFilter(val){
+  availFilter=val; renderAll();
+  setTimeout(()=>{
+    const id=activeTab==="admin"?"admin-avail-search":"lb-avail-search";
+    const el=document.getElementById(id);
+    if(el){el.focus();el.setSelectionRange(val.length,val.length);}
+  },10);
+}
+
+function exportState(){
+  const b=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="nfl2026_backup.json"; a.click();
+}
+function importState(input){
+  const file=input.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{ const d=JSON.parse(e.target.result); if(d.slots&&d.participants){state=d;saveState();renderAll();} }
+    catch{ alert("Invalid JSON file."); }
+  };
+  r.readAsText(file);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// NAV / RENDER
+// ─────────────────────────────────────────────────────────────────
+const TABS=[{id:"leaderboard",label:"Leaderboard"},{id:"participants",label:"Participants"},{id:"admin",label:"Commissioner",admin:true}];
+
+function setTab(id){ activeTab=id; renderAll(); }
+
+function updateLiveDot(){
+  const dot=document.getElementById("live-dot");
+  const lbl=document.getElementById("live-label");
+  if(!dot||!lbl) return;
+  const n=state.slots.filter(s=>s.player).length;
+  if(n===0)      { dot.className="live-dot"; lbl.textContent="Pre-draft"; }
+  else if(n>=32) { dot.className="live-dot"; lbl.textContent="Draft complete"; }
+  else           { dot.className="live-dot live"; lbl.textContent=`Pick ${n+1} on the clock`; }
+}
+
+function renderAll(){
+  const nav=document.getElementById("nav-tabs");
+  const content=document.getElementById("main-content");
+  if(!nav||!content) return;
+  nav.innerHTML=TABS.map(t=>
+    `<button class="nav-tab${t.admin?" admin-tab":""}${activeTab===t.id?" active":""}" onclick="setTab('${t.id}')">${t.label}</button>`
+  ).join("");
+  if(activeTab==="leaderboard")  content.innerHTML=renderLeaderboard();
+  else if(activeTab==="participants") content.innerHTML=renderParticipants();
+  else if(activeTab==="admin")   content.innerHTML=renderAdmin();
+  updateLiveDot();
+}
+
+renderAll();
+</script>
+</body>
+</html>
