@@ -353,6 +353,7 @@ function getAvail(){ const d=getDraftedSet(); return ALL_PLAYERS.filter(p=>!d.ha
 // SCORING
 // ─────────────────────────────────────────────────────────────────
 function scoreParticipant(p){
+  if(!p || !Array.isArray(p.picks)) return {name:p?.name||"", total:0, maxPts:0, pickScores:[]};
   const drafted = getDraftedSet();
   const byPick  = {};
   state.slots.forEach(s=>{ byPick[s.pick]=s; });
@@ -899,6 +900,11 @@ function renderAll(){
   const nav=document.getElementById("nav-tabs");
   const content=document.getElementById("main-content");
   if(!nav||!content) return;
+  // Safety net — re-init if state got corrupted
+  if(!Array.isArray(state.slots))        state.slots=DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}}));
+  if(!Array.isArray(state.participants)) state.participants=[];
+  state.slots.forEach(s=>{ if(!s.overrides) s.overrides={}; });
+  state.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
   nav.innerHTML=TABS.map(t=>
     `<button class="nav-tab${t.admin?" admin-tab":""}${activeTab===t.id?" active":""}" onclick="setTab('${t.id}')">${t.label}</button>`
   ).join("");
