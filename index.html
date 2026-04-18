@@ -308,19 +308,62 @@ const ADMIN_PASS = "commissioner2026";
 const DRAFT_START = new Date('2026-04-24T20:00:00-04:00');
 
 // ─────────────────────────────────────────────────────────────────
-// STATE
+// STATE — backed by Cloudflare KV via Worker
 // ─────────────────────────────────────────────────────────────────
-const SK = 'nfl2026v6';
-function loadState(){ try{ return JSON.parse(localStorage.getItem(SK))||{}; }catch{ return{}; } }
-function saveState(){ localStorage.setItem(SK,JSON.stringify(state)); }
+const WORKER_URL = 'https://green-bird-0ef5.iankay1.workers.dev';
+const SK = 'nfl2026v6'; // localStorage fallback key
+let commissionerKey = ''; // set when admin unlocks
 
-let state = loadState();
-if(!state.slots)        state.slots = DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}}));
-if(!state.participants) state.participants = [{name:"Sample 2026 Participant",picks:DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:""}))}];
-if(!state.entryFee)     state.entryFee = 50;
-// Guard against stale localStorage shape
-state.slots.forEach(s=>{ if(!s.overrides) s.overrides={}; });
-state.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
+function sanitizeState(s){
+  if(!Array.isArray(s.slots))        s.slots = DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}}));
+  if(!Array.isArray(s.participants)) s.participants = [];
+  if(!s.entryFee)                    s.entryFee = 50;
+  s.slots.forEach(sl=>{ if(!sl.overrides) sl.overrides={}; });
+  s.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
+  return s;
+}
+
+// Load initial state from Worker; fall back to localStorage while loading
+async function initState(){
+  // Show localStorage state immediately so the page isn't blank
+  try {
+    const local = JSON.parse(localStorage.getItem(SK)||'{}');
+    if(local.slots) { state = sanitizeState(local); renderAll(); }
+  } catch{}
+
+  // Then fetch from Worker and update if different
+  try {
+    const res = await fetch(`${WORKER_URL}/state`);
+    const data = await res.json();
+    if(!data.empty && data.slots){
+      state = sanitizeState(data);
+      localStorage.setItem(SK, JSON.stringify(state));
+      renderAll();
+    }
+  } catch(e){
+    console.warn('Could not reach Worker, using localStorage:', e);
+  }
+}
+
+// Save to Worker (commissioner only) AND localStorage
+async function saveState(){
+  localStorage.setItem(SK, JSON.stringify(state));
+  if(!commissionerKey) return; // viewers don't write
+  try {
+    await fetch(`${WORKER_URL}/state`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Commissioner-Key': commissionerKey,
+      },
+      body: JSON.stringify(state),
+    });
+  } catch(e){
+    console.warn('Worker save failed, saved to localStorage only:', e);
+  }
+}
+
+let state = sanitizeState({});
 
 let adminUnlocked = false;
 let activeTab = "leaderboard";
@@ -767,7 +810,12 @@ function slotDrop(e,idx){
 // ADMIN ACTIONS
 // ─────────────────────────────────────────────────────────────────
 function tryAdminLogin(){
-  if(document.getElementById("admin-pw")?.value===ADMIN_PASS){ adminUnlocked=true; renderAll(); }
+  const pw=document.getElementById("admin-pw")?.value;
+  if(pw===ADMIN_PASS){
+    adminUnlocked=true;
+    commissionerKey=pw; // use the admin password as the commissioner key
+    renderAll();
+  }
   else{ const el=document.getElementById("pw-error"); if(el) el.textContent="Incorrect password"; }
 }
 
@@ -845,8 +893,10 @@ function importState(input){
   const file=input.files[0]; if(!file) return;
   const r=new FileReader();
   r.onload=e=>{
-    try{ const d=JSON.parse(e.target.result); if(d.slots&&d.participants){state=d;saveState();renderAll();} }
-    catch{ alert("Invalid JSON file."); }
+    try{
+      const d=JSON.parse(e.target.result);
+      if(d.slots&&d.participants){ state=sanitizeState(d); saveState(); renderAll(); }
+    }catch{ alert("Invalid JSON file."); }
   };
   r.readAsText(file);
 }
@@ -871,13 +921,28 @@ setInterval(updateCountdown,1000);
 updateCountdown();
 
 // ─────────────────────────────────────────────────────────────────
-// AUTO-REFRESH (30s) — keeps viewers in sync without manual reload
+// AUTO-REFRESH — poll Worker every 30s so all viewers stay in sync
 // ─────────────────────────────────────────────────────────────────
-function autoRefresh(){
-  const saved=loadState();
-  if(JSON.stringify(saved)!==JSON.stringify(state)){ state=saved; renderAll(); }
+async function autoRefresh(){
+  // Commissioners don't need to poll — they're the source of truth
+  if(adminUnlocked) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/state`);
+    const data = await res.json();
+    if(!data.empty && data.slots){
+      const incoming = JSON.stringify(data);
+      const current  = JSON.stringify(state);
+      if(incoming !== current){
+        state = sanitizeState(data);
+        localStorage.setItem(SK, JSON.stringify(state));
+        renderAll();
+      }
+    }
+  } catch(e){
+    console.warn('Auto-refresh failed:', e);
+  }
 }
-setInterval(autoRefresh,30000);
+setInterval(autoRefresh, 15000); // poll every 15s for snappier updates
 
 // ─────────────────────────────────────────────────────────────────
 // NAV / RENDER
@@ -914,7 +979,9 @@ function renderAll(){
   updateLiveDot();
 }
 
+// Boot — show page immediately from localStorage, then sync from Worker
 renderAll();
+initState();
 </script>
 </body>
 </html>
