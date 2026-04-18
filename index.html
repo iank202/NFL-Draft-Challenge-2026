@@ -113,7 +113,11 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .pos-S{background:#ecfdf5;color:#064e3b;border-color:#a7f3d0;}
 .pos-ATH{background:#f9fafb;color:#374151;border-color:#e5e7eb;}
 
-/* ── ON THE CLOCK PANEL ── */
+/* ── POSITION FILTER PILLS ── */
+/* pos-pill/pos-filters removed — using dropdown instead */
+/* ── AUTO-REFRESH INDICATOR ── */
+.refresh-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--border2);margin-left:6px;vertical-align:middle;transition:background .3s;}
+.refresh-dot.ping{background:var(--green);}
 .otc-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
 .otc-header{padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(26,86,219,.04);display:flex;align-items:center;justify-content:space-between;}
 .otc-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
@@ -230,73 +234,206 @@ const TEAM_COLORS={
 };
 
 const ALL_PLAYERS=[
-  {name:"Fernando Mendoza",pos:"QB"},{name:"Rueben Bain Jr.",pos:"EDGE"},{name:"Arvell Reese",pos:"EDGE"},
-  {name:"Kadyn Proctor",pos:"DT"},{name:"Spencer Fano",pos:"OT"},{name:"Jermod McCoy",pos:"CB"},
-  {name:"Jeremiyah Love",pos:"RB"},{name:"Caleb Downs",pos:"S"},{name:"Sonny Styles",pos:"LB"},
-  {name:"Avieon Terrell",pos:"CB"},{name:"Ty Simpson",pos:"QB"},{name:"KC Concepcion",pos:"WR"},
-  {name:"Caleb Lomu",pos:"DT"},{name:"Mansoor Delane",pos:"CB"},{name:"Olaivavega Ioane",pos:"IOL"},
-  {name:"Francis Mauigoa",pos:"OT"},{name:"Makai Lemon",pos:"WR"},{name:"Carnell Tate",pos:"WR"},
-  {name:"Peter Woods",pos:"DL"},{name:"David Bailey",pos:"EDGE"},{name:"Omar Cooper Jr.",pos:"WR"},
-  {name:"Emmanuel McNeil-Warren",pos:"S"},{name:"Jordyn Tyson",pos:"WR"},{name:"Kenyon Sadiq",pos:"TE"},
-  {name:"Monroe Freeling",pos:"OT"},{name:"D'Angelo Ponds",pos:"CB"},{name:"Chris Johnson",pos:"CB"},
-  {name:"Lee Hunter",pos:"DL"},{name:"Blake Miller",pos:"OT"},{name:"Akheem Mesidor",pos:"EDGE"},
-  {name:"Max Iheanachor",pos:"DT"},{name:"Kayden McDonald",pos:"DL"},{name:"Cashius Howell",pos:"EDGE"},
-  {name:"Keldric Faulk",pos:"EDGE"},{name:"Anthony Hill Jr.",pos:"LB"},{name:"Jake Golday",pos:"LB"},
-  {name:"Denzel Boston",pos:"WR"},{name:"Dillon Thieneman",pos:"S"},{name:"Josiah Trotter",pos:"LB"},
-  {name:"Colton Hood",pos:"CB"},{name:"CJ Allen",pos:"LB"},{name:"Christen Miller",pos:"DL"},
-  {name:"Keith Abney II",pos:"CB"},{name:"R Mason Thomas",pos:"DL"},{name:"Connor Lew",pos:"IOL"},
-  {name:"Germie Bernard",pos:"WR"},{name:"Trey Zuhn III",pos:"IOL"},{name:"Caleb Banks",pos:"DL"},
-  {name:"Brenen Thompson",pos:"WR"},{name:"T.J. Parker",pos:"EDGE"},{name:"Chase Bisontis",pos:"IOL"},
-  {name:"Emmanuel Pregnon",pos:"IOL"},{name:"Keionte Scott",pos:"S"},{name:"Anthony Lucas",pos:"EDGE"},
-  {name:"Kyle Louis",pos:"LB"},{name:"Genesis Smith",pos:"S"},{name:"Jadarian Price",pos:"RB"},
-  {name:"Malachi Lawrence",pos:"LB"},{name:"Zachariah Branch",pos:"WR"},{name:"Caleb Tiernan",pos:"OT"},
-  {name:"Brandon Cisse",pos:"CB"},{name:"Chris Brazzell II",pos:"WR"},{name:"A.J. Haulcy",pos:"S"},
-  {name:"Malachi Fields",pos:"WR"},{name:"Jaishawn Barham",pos:"LB"},{name:"Gabe Jacas",pos:"EDGE"},
-  {name:"Michael Trigg",pos:"TE"},{name:"Eli Stowers",pos:"TE"},{name:"Eric McAlister",pos:"WR"},
-  {name:"Kage Casey",pos:"IOL"},{name:"Treydan Stukes",pos:"CB"},{name:"Chris McClellan",pos:"DL"},
-  {name:"Joshua Josephs",pos:"EDGE"},{name:"Devin Moore",pos:"CB"},{name:"Carver Willis",pos:"OT"},
-  {name:"Zion Young",pos:"EDGE"},{name:"Romello Height",pos:"EDGE"},{name:"Gennings Dunker",pos:"IOL"},
-  {name:"Julian Neal",pos:"CB"},{name:"Rayshaun Benny",pos:"DL"},{name:"Antonio Williams",pos:"WR"},
-  {name:"Elijah Sarratt",pos:"WR"},{name:"Jacob Rodriguez",pos:"LB"},{name:"Nate Boerkircher",pos:"TE"},
-  {name:"Billy Schrauth",pos:"IOL"},{name:"Austin Barber",pos:"OT"},{name:"Domonique Orange",pos:"DL"},
-  {name:"Max Klare",pos:"TE"},{name:"Keyron Crawford",pos:"EDGE"},{name:"Alex Harkey",pos:"IOL"},
-  {name:"Dontay Corleone",pos:"DL"},{name:"Ethan Burke",pos:"EDGE"},{name:"Cole Payton",pos:"QB"},
-  {name:"Nick Barrett",pos:"DL"},{name:"Zakee Wheatley",pos:"S"},{name:"Kamari Ramsey",pos:"S"},
-  {name:"Parker Brailsford",pos:"IOL"},{name:"Derrick Moore",pos:"EDGE"},{name:"Will Lee III",pos:"CB"},
-  {name:"Garrett Nussmeier",pos:"QB"},{name:"Keylan Rutledge",pos:"IOL"},{name:"Chris Bell",pos:"WR"},
-  {name:"Darrell Jackson Jr.",pos:"DL"},{name:"Josh Cuevas",pos:"TE"},{name:"Dani Dennis-Sutton",pos:"EDGE"},
-  {name:"Kevin Coleman Jr.",pos:"WR"},{name:"Jack Endries",pos:"TE"},{name:"Fa'alili Fa'amoe",pos:"OT"},
-  {name:"Keagen Trost",pos:"IOL"},{name:"Malik Muhammad",pos:"CB"},{name:"LT Overton",pos:"DL"},
-  {name:"Nadame Tucker",pos:"EDGE"},{name:"Kaleb Proctor",pos:"DL"},{name:"Lance Mason",pos:"TE"},
-  {name:"Jake Slaughter",pos:"IOL"},{name:"Clay Patterson",pos:"DL"},{name:"Aamil Wagner",pos:"OT"},
-  {name:"Eric Rivers",pos:"WR"},{name:"Brian Parker II",pos:"IOL"},{name:"Jager Burton",pos:"IOL"},
-  {name:"Jordan van den Berg",pos:"DL"},{name:"Brent Austin",pos:"CB"},{name:"Kaytron Allen",pos:"RB"},
-  {name:"Eli Raridon",pos:"TE"},{name:"Jonah Coleman",pos:"RB"},{name:"Tyreak Sapp",pos:"LB"},
-  {name:"Will Kacmarek",pos:"TE"},{name:"Matt Gulbin",pos:"IOL"},{name:"Jude Bowry",pos:"OT"},
-  {name:"J.C. Davis",pos:"OT"},{name:"Drew Shelton",pos:"OT"},{name:"Cade Klubnik",pos:"QB"},
-  {name:"Davison Igbinosun",pos:"CB"},{name:"Chris Adams",pos:"IOL"},{name:"Tim Keenan III",pos:"DL"},
-  {name:"Josh Cameron",pos:"WR"},{name:"Logan Jones",pos:"IOL"},{name:"Lander Barton",pos:"LB"},
-  {name:"Oscar Delp",pos:"TE"},{name:"Vinny Anthony II",pos:"WR"},{name:"Joe Royer",pos:"TE"},
-  {name:"Demond Claiborne",pos:"RB"},{name:"Harold Perkins Jr.",pos:"LB"},{name:"Daylen Everette",pos:"CB"},
-  {name:"Chandler Rivers",pos:"CB"},{name:"Wesley Williams",pos:"EDGE"},{name:"Ar'maj Reed-Adams",pos:"IOL"},
-  {name:"Robert Spears-Jennings",pos:"S"},{name:"DeVonta Smith",pos:"CB"},{name:"Zxavian Harris",pos:"DL"},
-  {name:"Markel Bell",pos:"OT"},{name:"Red Murdock",pos:"LB"},{name:"Devon Marshall",pos:"CB"},
-  {name:"Skyler Bell",pos:"WR"},{name:"Ted Hurst",pos:"WR"},{name:"Jeff Caldwell",pos:"WR"},
-  {name:"Jalen Farmer",pos:"IOL"},{name:"Pat Coogan",pos:"IOL"},{name:"Dallen Bentley",pos:"TE"},
-  {name:"Cian Slone",pos:"LB"},{name:"Emmett Johnson",pos:"RB"},{name:"Caden Curry",pos:"EDGE"},
-  {name:"Bryce Lance",pos:"WR"},{name:"Bakyne Coly",pos:"OT"},{name:"Reggie Virgil",pos:"WR"},
-  {name:"Drew Allar",pos:"QB"},{name:"Ja'Kobi Lane",pos:"WR"},{name:"Skyler Gill-Howard",pos:"DL"},
-  {name:"Isaiah World",pos:"OT"},{name:"Travis Burke",pos:"OT"},{name:"Marlin Klein",pos:"TE"},
-  {name:"Deion Burks",pos:"WR"},{name:"Gracen Halton",pos:"DL"},{name:"Keyshaun Elliott",pos:"LB"},
-  {name:"Justin Joly",pos:"TE"},{name:"DeMonte Capehart",pos:"DL"},{name:"Deontae Lawson",pos:"LB"},
-  {name:"Bud Clark",pos:"S"},{name:"Beau Stephens",pos:"IOL"},{name:"Bryce Boettcher",pos:"LB"},
-  {name:"Mike Washington Jr.",pos:"RB"},{name:"Barion Brown",pos:"WR"},{name:"Seth McGowan",pos:"RB"},
-  {name:"Hezekiah Masses",pos:"CB"},{name:"Bishop Fitzgerald",pos:"S"},{name:"Aaron Anderson",pos:"WR"},
-  {name:"Sam Roush",pos:"TE"},{name:"Robert Henry Jr.",pos:"RB"},{name:"Albert Regis",pos:"DL"},
-  {name:"Dametrious Crownover",pos:"OT"},{name:"Dae'Quan Wright",pos:"TE"},{name:"VJ Payne",pos:"S"},
-  {name:"Tyren Montgomery",pos:"WR"},{name:"Taurean York",pos:"LB"},{name:"Michael Taaffe",pos:"S"},
-  {name:"Zavion Thomas",pos:"WR"},{name:"Nicholas Singleton",pos:"RB"},{name:"Carson Beck",pos:"QB"},
-  {name:"Tyler Onyedim",pos:"DL"},{name:"TJ Hall",pos:"CB"}
+  {name:"Fernando Mendoza",pos:"QB"},   // 1
+  {name:"Rueben Bain Jr.",pos:"EDGE"},  // 2
+  {name:"Arvell Reese",pos:"EDGE"},     // 3
+  {name:"Kadyn Proctor",pos:"OT"},      // 4 - was DT, now OT per screenshot
+  {name:"Spencer Fano",pos:"OT"},       // 5
+  {name:"Jermod McCoy",pos:"CB"},       // 6
+  {name:"Jeremiyah Love",pos:"RB"},     // 7
+  {name:"Caleb Downs",pos:"S"},         // 8
+  {name:"Sonny Styles",pos:"LB"},       // 9
+  {name:"Avieon Terrell",pos:"CB"},     // 10
+  {name:"Ty Simpson",pos:"QB"},         // 11
+  {name:"KC Concepcion",pos:"WR"},      // 12
+  {name:"Caleb Lomu",pos:"OT"},         // 13 - was DT, now OT per screenshot
+  {name:"Mansoor Delane",pos:"CB"},     // 14
+  {name:"Olaivavega Ioane",pos:"IOL"},  // 15
+  {name:"Francis Mauigoa",pos:"OT"},    // 16
+  {name:"Makai Lemon",pos:"WR"},        // 17
+  {name:"Carnell Tate",pos:"WR"},       // 18
+  {name:"Peter Woods",pos:"DL"},        // 19
+  {name:"David Bailey",pos:"EDGE"},     // 20
+  {name:"Omar Cooper Jr.",pos:"WR"},    // 21
+  {name:"Emmanuel McNeil-Warren",pos:"S"}, // 22
+  {name:"Jordyn Tyson",pos:"WR"},       // 23
+  {name:"Kenyon Sadiq",pos:"TE"},       // 24
+  {name:"Monroe Freeling",pos:"OT"},    // 25
+  {name:"D'Angelo Ponds",pos:"CB"},     // 26
+  {name:"Chris Johnson",pos:"CB"},      // 27
+  {name:"Lee Hunter",pos:"DL"},         // 28
+  {name:"Blake Miller",pos:"OT"},       // 29
+  {name:"Akheem Mesidor",pos:"EDGE"},   // 30
+  {name:"Max Iheanachor",pos:"OT"},     // 31 - was DT, now OT per screenshot
+  {name:"Kayden McDonald",pos:"DL"},    // 32
+  {name:"Cashius Howell",pos:"EDGE"},   // 33
+  {name:"Keldric Faulk",pos:"EDGE"},    // 34
+  {name:"Anthony Hill Jr.",pos:"LB"},   // 35
+  {name:"Jake Golday",pos:"LB"},        // 36
+  {name:"Denzel Boston",pos:"WR"},      // 37
+  {name:"Dillon Thieneman",pos:"S"},    // 38
+  {name:"Josiah Trotter",pos:"LB"},     // 39
+  {name:"Colton Hood",pos:"CB"},        // 40
+  {name:"CJ Allen",pos:"LB"},           // 41
+  {name:"Christen Miller",pos:"DL"},    // 42
+  {name:"Keith Abney II",pos:"CB"},     // 43
+  {name:"R Mason Thomas",pos:"DL"},     // 44
+  {name:"Connor Lew",pos:"IOL"},        // 45
+  {name:"Germie Bernard",pos:"WR"},     // 46
+  {name:"Trey Zuhn III",pos:"IOL"},     // 47
+  {name:"Caleb Banks",pos:"DL"},        // 48
+  {name:"Brenen Thompson",pos:"WR"},    // 49
+  {name:"T.J. Parker",pos:"EDGE"},      // 50
+  {name:"Chase Bisontis",pos:"IOL"},    // 51
+  {name:"Emmanuel Pregnon",pos:"IOL"},  // 52
+  {name:"Keionte Scott",pos:"S"},       // 53
+  {name:"Anthony Lucas",pos:"EDGE"},    // 54
+  {name:"Kyle Louis",pos:"LB"},         // 55
+  {name:"Genesis Smith",pos:"S"},       // 56
+  {name:"Jadarian Price",pos:"RB"},     // 57
+  {name:"Malachi Lawrence",pos:"LB"},   // 58
+  {name:"Zachariah Branch",pos:"WR"},   // 59
+  {name:"Caleb Tiernan",pos:"OT"},      // 60
+  {name:"Brandon Cisse",pos:"CB"},      // 61
+  {name:"Chris Brazzell II",pos:"WR"},  // 62
+  {name:"A.J. Haulcy",pos:"S"},         // 63
+  {name:"Malachi Fields",pos:"WR"},     // 64
+  {name:"Jaishawn Barham",pos:"LB"},    // 65
+  {name:"Gabe Jacas",pos:"EDGE"},       // 66
+  {name:"Michael Trigg",pos:"TE"},      // 67
+  {name:"Eli Stowers",pos:"TE"},        // 68
+  {name:"Eric McAlister",pos:"WR"},     // 69
+  {name:"Kage Casey",pos:"IOL"},        // 70
+  {name:"Treydan Stukes",pos:"CB"},     // 71
+  {name:"Chris McClellan",pos:"DL"},    // 72
+  {name:"Joshua Josephs",pos:"EDGE"},   // 73
+  {name:"Devin Moore",pos:"CB"},        // 74
+  {name:"Carver Willis",pos:"OT"},      // 75
+  {name:"Zion Young",pos:"EDGE"},       // 76
+  {name:"Romello Height",pos:"EDGE"},   // 77
+  {name:"Gennings Dunker",pos:"IOL"},   // 78
+  {name:"Julian Neal",pos:"CB"},        // 79
+  {name:"Rayshaun Benny",pos:"DL"},     // 80
+  {name:"Antonio Williams",pos:"WR"},   // 81
+  {name:"Elijah Sarratt",pos:"WR"},     // 82
+  {name:"Jacob Rodriguez",pos:"LB"},    // 83
+  {name:"Nate Boerkircher",pos:"TE"},   // 84
+  {name:"Billy Schrauth",pos:"IOL"},    // 85
+  {name:"Austin Barber",pos:"OT"},      // 86
+  {name:"Domonique Orange",pos:"DL"},   // 87
+  {name:"Max Klare",pos:"TE"},          // 88
+  {name:"Keyron Crawford",pos:"EDGE"},  // 89
+  {name:"Alex Harkey",pos:"IOL"},       // 90
+  {name:"Dontay Corleone",pos:"DL"},    // 91
+  {name:"Ethan Burke",pos:"EDGE"},      // 92
+  {name:"Cole Payton",pos:"QB"},        // 93
+  {name:"Nick Barrett",pos:"DL"},       // 94
+  {name:"Zakee Wheatley",pos:"S"},      // 95
+  {name:"Kamari Ramsey",pos:"S"},       // 96
+  {name:"Parker Brailsford",pos:"IOL"}, // 97
+  {name:"Derrick Moore",pos:"EDGE"},    // 98
+  {name:"Will Lee III",pos:"CB"},       // 99
+  {name:"Garrett Nussmeier",pos:"QB"},  // 100
+  {name:"Keylan Rutledge",pos:"IOL"},   // 101
+  {name:"Chris Bell",pos:"WR"},         // 102
+  {name:"Darrell Jackson Jr.",pos:"DL"},// 103
+  {name:"Josh Cuevas",pos:"TE"},        // 104
+  {name:"Dani Dennis-Sutton",pos:"EDGE"}, // 105
+  {name:"Kevin Coleman Jr.",pos:"WR"},  // 106
+  {name:"Jack Endries",pos:"TE"},       // 107
+  {name:"Fa'alili Fa'amoe",pos:"OT"},   // 108
+  {name:"Keagen Trost",pos:"IOL"},      // 109
+  {name:"Malik Muhammad",pos:"CB"},     // 110
+  {name:"LT Overton",pos:"DL"},         // 111
+  {name:"Nadame Tucker",pos:"EDGE"},    // 112
+  {name:"Kaleb Proctor",pos:"DL"},      // 113
+  {name:"Lance Mason",pos:"TE"},        // 114
+  {name:"Jake Slaughter",pos:"IOL"},    // 115
+  {name:"Clay Patterson",pos:"DL"},     // 116
+  {name:"Aamil Wagner",pos:"OT"},       // 117
+  {name:"Eric Rivers",pos:"WR"},        // 118
+  {name:"Brian Parker II",pos:"IOL"},   // 119
+  {name:"Jager Burton",pos:"IOL"},      // 120
+  {name:"Jordan van den Berg",pos:"DL"},// 121
+  {name:"Brent Austin",pos:"CB"},       // 122
+  {name:"Kaytron Allen",pos:"RB"},      // 123
+  {name:"Eli Raridon",pos:"TE"},        // 124
+  {name:"Jonah Coleman",pos:"RB"},      // 125
+  {name:"Tyreak Sapp",pos:"LB"},        // 126
+  {name:"Will Kacmarek",pos:"TE"},      // 127
+  {name:"Matt Gulbin",pos:"IOL"},       // 128
+  {name:"Jude Bowry",pos:"OT"},         // 129
+  {name:"J.C. Davis",pos:"OT"},         // 130
+  {name:"Drew Shelton",pos:"OT"},       // 131
+  {name:"Cade Klubnik",pos:"QB"},       // 132
+  {name:"Davison Igbinosun",pos:"CB"},  // 133
+  {name:"Chris Adams",pos:"IOL"},       // 134
+  {name:"Tim Keenan III",pos:"DL"},     // 135
+  {name:"Josh Cameron",pos:"WR"},       // 136
+  {name:"Logan Jones",pos:"IOL"},       // 137
+  {name:"Lander Barton",pos:"LB"},      // 138
+  {name:"Oscar Delp",pos:"TE"},         // 139
+  {name:"Vinny Anthony II",pos:"WR"},   // 140
+  {name:"Joe Royer",pos:"TE"},          // 141
+  {name:"Demond Claiborne",pos:"RB"},   // 142
+  {name:"Harold Perkins Jr.",pos:"LB"}, // 143
+  {name:"Daylen Everette",pos:"CB"},    // 144
+  {name:"Chandler Rivers",pos:"CB"},    // 145
+  {name:"Wesley Williams",pos:"EDGE"},  // 146
+  {name:"Ar'maj Reed-Adams",pos:"IOL"}, // 147
+  {name:"Robert Spears-Jennings",pos:"S"}, // 148
+  {name:"DeVonta Smith",pos:"CB"},      // 149
+  {name:"Zxavian Harris",pos:"DL"},     // 150
+  {name:"Markel Bell",pos:"OT"},        // 151
+  {name:"Red Murdock",pos:"LB"},        // 152
+  {name:"Devon Marshall",pos:"CB"},     // 153
+  {name:"Skyler Bell",pos:"WR"},        // 154
+  {name:"Ted Hurst",pos:"WR"},          // 155
+  {name:"Jeff Caldwell",pos:"WR"},      // 156
+  {name:"Jalen Farmer",pos:"IOL"},      // 157
+  {name:"Pat Coogan",pos:"IOL"},        // 158
+  {name:"Dallen Bentley",pos:"TE"},     // 159
+  {name:"Cian Slone",pos:"LB"},         // 160
+  {name:"Emmett Johnson",pos:"RB"},     // 161
+  {name:"Caden Curry",pos:"EDGE"},      // 162
+  {name:"Bryce Lance",pos:"WR"},        // 163
+  {name:"Bakyne Coly",pos:"OT"},        // 164
+  {name:"Reggie Virgil",pos:"WR"},      // 165
+  {name:"Drew Allar",pos:"QB"},         // 166
+  {name:"Ja'Kobi Lane",pos:"WR"},       // 167
+  {name:"Skyler Gill-Howard",pos:"DL"}, // 168
+  {name:"Isaiah World",pos:"OT"},       // 169
+  {name:"Travis Burke",pos:"OT"},       // 170
+  {name:"Marlin Klein",pos:"TE"},       // 171
+  {name:"Deion Burks",pos:"WR"},        // 172
+  {name:"Gracen Halton",pos:"DL"},      // 173
+  {name:"Keyshaun Elliott",pos:"LB"},   // 174
+  {name:"Justin Joly",pos:"TE"},        // 175
+  {name:"DeMonte Capehart",pos:"DL"},   // 176
+  {name:"Deontae Lawson",pos:"LB"},     // 177
+  {name:"Bud Clark",pos:"S"},           // 178
+  {name:"Beau Stephens",pos:"IOL"},     // 179
+  {name:"Bryce Boettcher",pos:"LB"},    // 180
+  {name:"Mike Washington Jr.",pos:"RB"},// 181
+  {name:"Barion Brown",pos:"WR"},       // 182
+  {name:"Seth McGowan",pos:"RB"},       // 183
+  {name:"Hezekiah Masses",pos:"CB"},    // 184
+  {name:"Bishop Fitzgerald",pos:"S"},   // 185
+  {name:"Aaron Anderson",pos:"WR"},     // 186
+  {name:"Sam Roush",pos:"TE"},          // 187
+  {name:"Robert Henry Jr.",pos:"RB"},   // 188
+  {name:"Albert Regis",pos:"DL"},       // 189
+  {name:"Dametrious Crownover",pos:"OT"}, // 190
+  {name:"Dae'Quan Wright",pos:"TE"},    // 191
+  {name:"VJ Payne",pos:"S"},            // 192
+  {name:"Tyren Montgomery",pos:"WR"},   // 193
+  {name:"Taurean York",pos:"LB"},       // 194
+  {name:"Michael Taaffe",pos:"S"},      // 195
+  {name:"Zavion Thomas",pos:"WR"},      // 196
+  {name:"Nicholas Singleton",pos:"RB"}, // 197
+  {name:"Carson Beck",pos:"QB"},        // 198
+  {name:"Tyler Onyedim",pos:"DL"},      // 199
+  {name:"TJ Hall",pos:"CB"},            // 200
 ];
 
 const ADMIN_PASS = "commissioner2026";
@@ -304,7 +441,7 @@ const ADMIN_PASS = "commissioner2026";
 // ─────────────────────────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────────────────────────
-const SK = 'nfl2026v5';
+const SK = 'nfl2026v6';
 function loadState(){ try{ return JSON.parse(localStorage.getItem(SK))||{}; }catch{ return{}; } }
 function saveState(){ localStorage.setItem(SK,JSON.stringify(state)); }
 
@@ -312,11 +449,16 @@ let state = loadState();
 if(!state.slots)        state.slots = DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}}));
 if(!state.participants) state.participants = [{name:"Sample 2026 Participant",picks:DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:""}))}];
 if(!state.entryFee)     state.entryFee = 50;
+// Ensure every slot has overrides object (guards against old localStorage shape)
+state.slots.forEach(s=>{ if(!s.overrides) s.overrides={}; });
+// Ensure every participant has a picks array
+state.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
 
 let adminUnlocked = false;
 let activeTab = "leaderboard";
 let activeParticipant = state.participants[0]?.name || "";
 let availFilter = "";
+let posFilter = "ALL";
 
 // drag state (player from avail list onto slot)
 let dragPlayerData = null;
@@ -492,8 +634,19 @@ function renderLeaderboard(){
     </div>`;
   }).join("");
 
-  // Best available
-  const filtered = avail.filter(p=>!availFilter||p.name.toLowerCase().includes(availFilter.toLowerCase()));
+  // Best available — position dropdown + name search
+  const POS_GROUPS = ["ALL","QB","EDGE","OT","IOL","DL","WR","RB","TE","LB","CB","S"];
+  const filtered = avail.filter(p=>{
+    const matchPos  = posFilter==="ALL" || p.pos===posFilter;
+    const matchName = !availFilter || p.name.toLowerCase().includes(availFilter.toLowerCase());
+    return matchPos && matchName;
+  });
+  const posDropdown = `<div style="display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--s2)">
+    <label style="font-family:var(--df);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap">Position</label>
+    <select onchange="setPosFilter(this.value)" style="flex:1;padding:5px 8px;border:1px solid var(--border2);border-radius:5px;font-family:var(--df);font-size:13px;font-weight:700;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+      ${POS_GROUPS.map(p=>`<option value="${p}"${posFilter===p?" selected":""}>${p==="ALL"?"All positions":p}</option>`).join("")}
+    </select>
+  </div>`;
   const availHtml = filtered.slice(0,120).map(p=>
     `<div class="avail-row">${posBadge(p.pos)}<span class="avail-name">${p.name}</span></div>`
   ).join("") || `<div class="empty-state">No players match.</div>`;
@@ -554,9 +707,10 @@ function renderLeaderboard(){
     </div>
     <div>
       <div class="panel">
-        <div class="ph"><span class="ph-title">Best Available</span><span class="ph-badge">${avail.length}</span></div>
-        <input class="avail-search" placeholder="Filter players…" id="lb-avail-search" value="${availFilter}" oninput="setAvailFilter(this.value)">
-        <div class="scrollable" style="max-height:calc(100vh - 225px)">${availHtml}</div>
+        <div class="ph"><span class="ph-title">Best Available</span><span class="ph-badge">${filtered.length} of ${avail.length}</span></div>
+        ${posDropdown}
+        <input class="avail-search" placeholder="Filter by name…" id="lb-avail-search" value="${availFilter}" oninput="setAvailFilter(this.value)">
+        <div class="scrollable" style="max-height:calc(100vh - 290px)">${availHtml}</div>
       </div>
     </div>
   </div>`;
@@ -832,6 +986,10 @@ function removeParticipant(idx){
   saveState(); renderAll();
 }
 
+function setPosFilter(pos){
+  posFilter=pos; renderAll();
+}
+
 function setAvailFilter(val){
   availFilter=val; renderAll();
   setTimeout(()=>{
@@ -882,6 +1040,27 @@ function updateCountdown(){
 setInterval(updateCountdown, 1000);
 updateCountdown();
 
+// ─────────────────────────────────────────────────────────────────
+// AUTO-REFRESH — reload state from localStorage every 30s
+// Lets multiple viewers on the same device stay in sync,
+// and gives a visual ping so watchers know the page is live.
+// ─────────────────────────────────────────────────────────────────
+function autoRefresh(){
+  const saved = loadState();
+  // Only re-render if state has actually changed
+  const changed = JSON.stringify(saved) !== JSON.stringify(state);
+  if(changed){
+    state = saved;
+    renderAll();
+  }
+  // Flash the refresh dot regardless
+  const dot = document.getElementById("refresh-dot");
+  if(dot){
+    dot.classList.add("ping");
+    setTimeout(()=>dot.classList.remove("ping"), 600);
+  }
+}
+setInterval(autoRefresh, 30000);
 
 const TABS=[{id:"leaderboard",label:"Leaderboard"},{id:"participants",label:"Participants"},{id:"admin",label:"Commissioner",admin:true}];
 
