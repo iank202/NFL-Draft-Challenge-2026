@@ -27,8 +27,41 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .nav-tabs::-webkit-scrollbar{display:none;}
 .main{padding:1.25rem 1.5rem;}
 .col3{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr) minmax(0,220px);gap:1.25rem;align-items:start;}
+@media(max-width:900px){
+  .col3{grid-template-columns:1fr 1fr;}
+  .col3>div:first-child{grid-column:1/-1;}
+}
+@media(max-width:600px){
+  .col3{grid-template-columns:1fr;}
+  header{height:auto;padding:.75rem 1rem;flex-wrap:wrap;gap:6px;}
+  .site-title{font-size:18px;}
+  .main{padding:.75rem;}
+  .scrollable{max-height:none !important;}
+}
 
-/* ── HEADER ── */
+/* ── REFRESH INDICATOR ── */
+.sync-dot{display:inline-flex;align-items:center;gap:5px;font-family:var(--df);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.sync-dot .sdot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .4s;}
+.sync-dot.synced .sdot{background:var(--green);box-shadow:0 0 5px rgba(21,128,61,.4);}
+.sync-dot.synced{color:var(--green);}
+
+/* ── STATS PANEL ── */
+.stats-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
+.stats-header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--s2);}
+.stats-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.stats-body{padding:10px 14px;display:flex;flex-direction:column;gap:10px;}
+.stats-row{display:flex;flex-direction:column;gap:3px;}
+.stats-label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em;font-family:var(--df);}
+.stats-numbers{display:flex;align-items:baseline;gap:6px;}
+.stats-big{font-family:var(--df);font-size:20px;font-weight:800;color:var(--text);line-height:1;}
+.stats-pct{font-family:var(--df);font-size:13px;font-weight:700;color:var(--accent);}
+.stats-sub{font-size:11px;color:var(--muted);}
+.stats-bar{height:4px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:3px;}
+.stats-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
+.stats-bar-fill.green{background:var(--green);}
+.stats-bar-fill.blue{background:var(--accent);}
+
+
 .site-title{font-family:var(--df);font-size:24px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--accent);}
 .live-dot{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
 .live-dot .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
@@ -83,9 +116,15 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .rules-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
 .rules-header{padding:8px 14px;border-bottom:1px solid var(--border);}
 .rules-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
-.rules-body{padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
-.rule{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text2);line-height:1.45;}
-.rule-dot{font-family:var(--df);font-size:13px;font-weight:800;color:var(--accent);flex-shrink:0;width:18px;text-align:right;}
+.rules-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px;}
+.rule{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text2);line-height:1.5;}
+.rule-badge{font-family:var(--df);font-size:12px;font-weight:800;flex-shrink:0;min-width:22px;height:22px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;}
+.rule-badge.pts{background:var(--accent);color:#fff;}
+.rule-badge.zero{background:var(--s3);color:var(--muted);border:1px solid var(--border);}
+.rule-badge.void{background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.2);}
+.rule-badge.info{background:var(--s3);color:var(--text2);border:1px solid var(--border);font-size:13px;}
+.rule-text{flex:1;}
+.rule-sub{margin-top:5px;padding:6px 8px;background:var(--surface);border-left:2px solid var(--border2);border-radius:0 4px 4px 0;font-size:11px;color:var(--muted);line-height:1.5;}
 
 /* ── ON THE CLOCK ── */
 .otc-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
@@ -193,8 +232,9 @@ textarea{min-height:110px;resize:vertical;font-size:13px;}
 
 <header>
   <span class="site-title">NFL Mock Draft Challenge 2026</span>
-  <div style="display:flex;align-items:center;gap:16px">
-    <div id="countdown" style="font-family:var(--df);font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-align:right"></div>
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end">
+    <div class="sync-dot" id="sync-dot"><span class="sdot"></span><span id="sync-label">Syncing…</span></div>
+    <div id="countdown" style="font-family:var(--df);font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.05em"></div>
     <div class="live-dot" id="live-dot"><span class="dot"></span><span id="live-label">Pre-draft</span></div>
   </div>
 </header>
@@ -335,12 +375,14 @@ async function initState(){
   try {
     const res = await fetch(`${WORKER_URL}/state`);
     const data = await res.json();
+    setSynced(true);
     if(!data.empty && data.slots){
       state = sanitizeState(data);
       localStorage.setItem(SK, JSON.stringify(state));
       renderAll();
     }
   } catch(e){
+    setSynced(false);
     console.warn('Could not reach Worker, using localStorage:', e);
   }
 }
@@ -499,26 +541,57 @@ function renderLeaderboard(){
       if(!b.player||b.player==="—") return -1;
       return a.player.localeCompare(b.player);
     });
-
     const otcRowsHtml = otcRows.map(r=>{
       const pc = r.pts===3?"v3":r.pts===1?"v1":"v0";
       const ptsEl = r.pts!=null ? `<div class="otc-pts ${pc}">${r.pts}</div>` : `<div class="otc-pts v0">—</div>`;
       return `<div class="otc-row">
-        <div>
-          <div class="otc-name">${r.name}</div>
-          <div class="otc-player">${r.player}${r.pos?` · ${r.pos}`:""}</div>
-        </div>
+        <div><div class="otc-name">${r.name}</div><div class="otc-player">${r.player}${r.pos?` · ${r.pos}`:""}</div></div>
         <div>${r.pos?posBadge(r.pos):""}</div>
         <div>${ptsEl}</div>
       </div>`;
     }).join("");
-
     otcHtml = `<div class="otc-panel">
       <div class="otc-header">
         <span class="otc-title">On the Clock — Pick ${nextSlot.pick}</span>
         ${teamBadge(nextSlot.team,24)}
       </div>
       ${otcRowsHtml||`<div class="empty-state">No participants yet.</div>`}
+    </div>`;
+  }
+
+  // Stats panel
+  let statsHtml = "";
+  const decidedSlots = state.slots.filter(s=>s.player).length;
+  if(decidedSlots > 0 && state.participants.length > 0){
+    const allPickScores = state.participants.flatMap(p=>scoreParticipant(p).pickScores.filter(pk=>pk.pts!==null));
+    const totalResolved  = allPickScores.length;
+    const correctPicks   = allPickScores.filter(pk=>pk.pts===3).length;
+    const totalPtsEarned = allPickScores.reduce((s,pk)=>s+(pk.pts||0),0);
+    const maxPtsPossible = decidedSlots * state.participants.length * 3;
+    const pickPct  = totalResolved>0 ? Math.round(correctPicks/totalResolved*100) : 0;
+    const ptsPct   = maxPtsPossible>0 ? Math.round(totalPtsEarned/maxPtsPossible*100) : 0;
+    statsHtml = `<div class="stats-card">
+      <div class="stats-header"><span class="stats-title">Pool Stats</span></div>
+      <div class="stats-body">
+        <div class="stats-row">
+          <div class="stats-label">Correct Picks</div>
+          <div class="stats-numbers">
+            <span class="stats-big">${correctPicks}</span>
+            <span class="stats-sub">of ${totalResolved}</span>
+            <span class="stats-pct">${pickPct}%</span>
+          </div>
+          <div class="stats-bar"><div class="stats-bar-fill green" style="width:${pickPct}%"></div></div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-label">Points Earned</div>
+          <div class="stats-numbers">
+            <span class="stats-big">${totalPtsEarned}</span>
+            <span class="stats-sub">of ${maxPtsPossible} max</span>
+            <span class="stats-pct">${ptsPct}%</span>
+          </div>
+          <div class="stats-bar"><div class="stats-bar-fill blue" style="width:${ptsPct}%"></div></div>
+        </div>
+      </div>
     </div>`;
   }
 
@@ -534,18 +607,22 @@ function renderLeaderboard(){
     </div>
   </div>`;
 
-  // Rules
+  // Rules — improved badges, sub-bullets for examples
   const rulesHtml = `<div class="rules-card">
     <div class="rules-header"><span class="rules-title">Scoring Rules</span></div>
     <div class="rules-body">
-      <div class="rule"><span class="rule-dot">3</span><span>Points for correct player (and position).</span></div>
-      <div class="rule"><span class="rule-dot">1</span><span>Point for correct position but incorrect player.</span></div>
-      <div class="rule"><span class="rule-dot">·</span><span>Trades count for the team, not the draft slot. <em>E.g.: If the Jets trade from No. 2 to No. 1 and select Fernando Mendoza, participants who mocked Mendoza to the Jets at No. 2 will receive 3 points. Participants who mocked Mendoza to the Raiders at No. 1 will receive 1 point if the Raiders select a different QB at No. 2, or 0 points if the Raiders select a different position at No. 2.</em></span></div>
-      <div class="rule"><span class="rule-dot">·</span><span>Official positions are per the CBS Sports list. Note that OT/IOL, DL/EDGE, and LB/EDGE are different positions.</span></div>
-      <div class="rule"><span class="rule-dot">1</span><span>Point if a team has multiple picks and you select the correct player but in the wrong pick slot. <em>E.g.: In 2023, HOU had picks No. 2 and No. 12. Participants who mocked Will Anderson to HOU at No. 2 received 1 point when HOU selected him at No. 3. Participants who mocked Anderson to HOU at No. 12 received 3 points.</em></span></div>
-      <div class="rule"><span class="rule-dot">0</span><span>If a team trades from outside the first round into the first round, that pick is null.</span></div>
-      <div class="rule"><span class="rule-dot">·</span><span>If a team trades multiple 1st round picks to move up for one pick, you will receive points for correctly mocking either pick.</span></div>
-      <div class="rule"><span class="rule-dot">✕</span><span>If you mock the same player in multiple slots, he is void in all slots.</span></div>
+      <div class="rule"><span class="rule-badge pts">3</span><span class="rule-text">Points for correct player (and position).</span></div>
+      <div class="rule"><span class="rule-badge pts">1</span><div class="rule-text">Point for correct position but incorrect player.</div></div>
+      <div class="rule"><span class="rule-badge info">⇄</span><div class="rule-text">Trades count for the team, not the draft slot.
+        <div class="rule-sub">E.g.: If the Jets trade from No. 2 to No. 1 and select Fernando Mendoza, participants who mocked Mendoza to the Jets at No. 2 receive 3 pts. Participants who mocked Mendoza to the Raiders at No. 1 receive 1 pt if the Raiders select a different QB at No. 2, or 0 pts if a different position.</div>
+      </div></div>
+      <div class="rule"><span class="rule-badge info">i</span><div class="rule-text">Official positions are per the CBS Sports list. OT/IOL, DL/EDGE, and LB/EDGE are different positions.</div></div>
+      <div class="rule"><span class="rule-badge pts">1</span><div class="rule-text">Point if a team has multiple picks and you select the correct player but in the wrong slot.
+        <div class="rule-sub">E.g.: In 2023, HOU had picks No. 2 and No. 12. Participants who mocked Will Anderson to HOU at No. 2 received 1 pt when HOU selected him at No. 3. Participants who mocked Anderson to HOU at No. 12 received 3 pts.</div>
+      </div></div>
+      <div class="rule"><span class="rule-badge zero">0</span><div class="rule-text">If a team trades from outside the first round into the first round, that pick is null.</div></div>
+      <div class="rule"><span class="rule-badge info">⇄</span><div class="rule-text">If a team trades multiple 1st round picks to move up for one pick, you receive points for correctly mocking either pick.</div></div>
+      <div class="rule"><span class="rule-badge void">✕</span><div class="rule-text">If you mock the same player in multiple slots, he is void in all slots.</div></div>
     </div>
   </div>`;
 
@@ -585,15 +662,16 @@ function renderLeaderboard(){
         </table></div>
       </div>
       ${otcHtml}
+      ${statsHtml}
       ${potHtml}
       ${rulesHtml}
     </div>
     <div><div class="panel">
-      <div class="ph"><span class="ph-title">2026 Draft Board</span><span class="ph-badge">${pickedCount}/32</span></div>
+      <div class="ph"><span class="ph-title">2026 Draft Board</span></div>
       <div class="scrollable" style="max-height:calc(100vh - 185px)">${boardHtml}</div>
     </div></div>
     <div><div class="panel">
-      <div class="ph"><span class="ph-title">Best Available</span><span class="ph-badge">${filtered.length} of ${avail.length}</span></div>
+      <div class="ph"><span class="ph-title">Best Available</span></div>
       <div class="avail-filter-row">
         <span class="avail-filter-label">Pos</span>
         <select class="avail-filter-select" onchange="setPosFilter(this.value)">
@@ -920,15 +998,24 @@ function updateCountdown(){
 setInterval(updateCountdown,1000);
 updateCountdown();
 
+
+function setSynced(ok){
+  const el=document.getElementById("sync-dot");
+  const lbl=document.getElementById("sync-label");
+  if(!el||!lbl) return;
+  if(ok){ el.className="sync-dot synced"; lbl.textContent="Live"; }
+  else  { el.className="sync-dot"; lbl.textContent="Offline"; }
+}
+
 // ─────────────────────────────────────────────────────────────────
-// AUTO-REFRESH — poll Worker every 30s so all viewers stay in sync
+// AUTO-REFRESH — poll Worker every 15s so all viewers stay in sync
 // ─────────────────────────────────────────────────────────────────
 async function autoRefresh(){
-  // Commissioners don't need to poll — they're the source of truth
-  if(adminUnlocked) return;
+  if(adminUnlocked) return; // commissioner is the source of truth
   try {
     const res = await fetch(`${WORKER_URL}/state`);
     const data = await res.json();
+    setSynced(true);
     if(!data.empty && data.slots){
       const incoming = JSON.stringify(data);
       const current  = JSON.stringify(state);
@@ -939,10 +1026,11 @@ async function autoRefresh(){
       }
     }
   } catch(e){
+    setSynced(false);
     console.warn('Auto-refresh failed:', e);
   }
 }
-setInterval(autoRefresh, 15000); // poll every 15s for snappier updates
+setInterval(autoRefresh, 15000);
 
 // ─────────────────────────────────────────────────────────────────
 // NAV / RENDER
