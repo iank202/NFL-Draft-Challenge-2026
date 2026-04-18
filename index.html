@@ -26,7 +26,7 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;overflow-x:auto;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
 .main{padding:1.25rem 1.5rem;}
-.col3{display:grid;grid-template-columns:minmax(0,360px) minmax(0,300px) minmax(0,1fr);gap:1.25rem;align-items:start;}
+.col3{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr) minmax(0,220px);gap:1.25rem;align-items:start;}
 
 /* ── HEADER ── */
 .site-title{font-family:var(--df);font-size:24px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--accent);}
@@ -552,9 +552,9 @@ function renderLeaderboard(){
     <div><div class="panel">
       <div class="ph"><span class="ph-title">Best Available</span><span class="ph-badge">${filtered.length} of ${avail.length}</span></div>
       <div class="avail-filter-row">
-        <span class="avail-filter-label">Position</span>
+        <span class="avail-filter-label">Pos</span>
         <select class="avail-filter-select" onchange="setPosFilter(this.value)">
-          ${POS_GROUPS.map(p=>`<option value="${p}"${posFilter===p?" selected":""}>${p==="ALL"?"All positions":p}</option>`).join("")}
+          ${POS_GROUPS.map(p=>`<option value="${p}"${posFilter===p?" selected":""}>${p==="ALL"?"All":p}</option>`).join("")}
         </select>
       </div>
       <input class="avail-search" placeholder="Filter by name…" id="lb-avail-search" value="${availFilter}" oninput="setAvailFilter(this.value)">
