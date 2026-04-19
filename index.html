@@ -133,17 +133,20 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 
 /* ── RULES CARD ── */
 .rules-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
-.rules-header{padding:8px 14px;border-bottom:1px solid var(--border);}
-.rules-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
-.rules-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px;}
-.rule{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text2);line-height:1.5;}
+.rules-header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--s3);}
+.rules-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text);}
+.rules-body{display:flex;flex-direction:column;}
+.rules-section{padding:9px 14px;display:flex;flex-direction:column;gap:5px;border-bottom:1px solid var(--border);}
+.rules-section:last-child{border-bottom:none;}
+.rules-section-label{font-family:var(--df);font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:1px;}
+.rule{display:flex;gap:9px;align-items:baseline;font-size:12px;color:var(--text2);line-height:1.5;}
 .rule-badge{font-family:var(--df);font-size:12px;font-weight:800;flex-shrink:0;min-width:22px;height:22px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;}
 .rule-badge.pts{background:var(--accent);color:#fff;}
 .rule-badge.zero{background:var(--s3);color:var(--muted);border:1px solid var(--border);}
 .rule-badge.void{background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.2);}
-.rule-badge.info{background:var(--s3);color:var(--text2);border:1px solid var(--border);font-size:13px;}
+.rule-icon{font-size:13px;flex-shrink:0;width:22px;text-align:center;color:var(--muted);}
 .rule-text{flex:1;}
-.rule-sub{margin-top:5px;padding:6px 8px;background:var(--surface);border-left:2px solid var(--border2);border-radius:0 4px 4px 0;font-size:11px;color:var(--muted);line-height:1.5;}
+.rule-sub{margin-top:3px;margin-left:31px;padding:4px 8px;background:var(--surface);border-left:2px solid var(--border2);border-radius:0 3px 3px 0;font-size:11px;color:var(--muted);line-height:1.5;font-style:italic;}
 
 /* ── ON THE CLOCK ── */
 .otc-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
@@ -662,22 +665,35 @@ function renderLeaderboard(){
     </div>
   </div>`;
 
-  // Rules — improved badges, sub-bullets for examples
+  // Rules
   const rulesHtml = `<div class="rules-card">
     <div class="rules-header"><span class="rules-title">Scoring Rules</span></div>
     <div class="rules-body">
-      <div class="rule"><span class="rule-badge pts">3</span><span class="rule-text">Points for correct player (and position).</span></div>
-      <div class="rule"><span class="rule-badge pts">1</span><div class="rule-text">Point for correct position but incorrect player.</div></div>
-      <div class="rule"><span class="rule-badge info">⇄</span><div class="rule-text">Trades count for the team, not the draft slot.
-        <div class="rule-sub">E.g.: If the Jets trade from No. 2 to No. 1 and select Fernando Mendoza, participants who mocked Mendoza to the Jets at No. 2 receive 3 pts. Participants who mocked Mendoza to the Raiders at No. 1 receive 1 pt if the Raiders select a different QB at No. 2, or 0 pts if a different position.</div>
-      </div></div>
-      <div class="rule"><span class="rule-badge info">i</span><div class="rule-text">Official positions are per the CBS Sports list. OT/IOL, DL/EDGE, and LB/EDGE are different positions.</div></div>
-      <div class="rule"><span class="rule-badge pts">1</span><div class="rule-text">Point if a team has multiple picks and you select the correct player but in the wrong slot.
-        <div class="rule-sub">E.g.: In 2023, HOU had picks No. 2 and No. 12. Participants who mocked Will Anderson to HOU at No. 2 received 1 pt when HOU selected him at No. 3. Participants who mocked Anderson to HOU at No. 12 received 3 pts.</div>
-      </div></div>
-      <div class="rule"><span class="rule-badge zero">0</span><div class="rule-text">If a team trades from outside the first round into the first round, the pick is void and scored 0 for all participants.</div></div>
-      <div class="rule"><span class="rule-badge info">⇄</span><div class="rule-text">If a team trades multiple 1st round picks to move up for one pick, you receive points for correctly mocking either pick.</div></div>
-      <div class="rule"><span class="rule-badge void">✕</span><div class="rule-text">If you mock the same player in multiple slots, he is void in all slots.</div></div>
+
+      <div class="rules-section">
+        <div class="rules-section-label">Points</div>
+        <div class="rule"><span class="rule-badge pts">3</span><span class="rule-text">Points for correct player (and position).</span></div>
+        <div class="rule"><span class="rule-badge pts">1</span><span class="rule-text">Point for correct position but incorrect player.</span></div>
+        <div class="rule"><span class="rule-badge pts">1</span><div class="rule-text">Point if a team has multiple picks and you select the correct player but in the wrong pick slot.
+          <div class="rule-sub">E.g.: In 2023, HOU had picks No. 2 and No. 12. They selected CJ Stroud at No. 2, then traded up from No. 12 to No. 3 and selected Will Anderson. Participants who mocked Anderson to HOU at No. 2 received 1 point when HOU selected him at No. 3. Participants who mocked Anderson to HOU at No. 12 received 3 points.</div>
+        </div></div>
+      </div>
+
+      <div class="rules-section">
+        <div class="rules-section-label">Trades</div>
+        <div class="rule"><span class="rule-icon">⇄</span><span class="rule-text">If a team trades multiple 1st round picks to move up for one pick, you receive points for correctly mocking either pick.</span></div>
+        <div class="rule"><span class="rule-icon">⇄</span><div class="rule-text">Trades count for the team, not the draft slot.
+          <div class="rule-sub">E.g.: If the Jets trade from No. 2 to No. 1 and select Fernando Mendoza, participants who mocked Mendoza to the Jets at No. 2 will receive 3 points. Participants who mocked Mendoza to the Raiders at No. 1 will receive 1 point if the Raiders select a different QB at No. 2, or 0 points if the Raiders select a different position at No. 2.</div>
+        </div></div>
+        <div class="rule"><span class="rule-badge void">✕</span><span class="rule-text">If a team trades <em>into</em> the first round from outside it, that pick is void and scored 0 for all participants.</span></div>
+      </div>
+
+      <div class="rules-section">
+        <div class="rules-section-label">Other</div>
+        <div class="rule"><span class="rule-icon">i</span><span class="rule-text">Positions are per the CBS Sports list. OT/IOL, DL/EDGE, and LB/EDGE are treated as distinct positions.</span></div>
+        <div class="rule"><span class="rule-badge zero">0</span><span class="rule-text">Mock the same player in multiple slots and he is void in all of them.</span></div>
+      </div>
+
     </div>
   </div>`;
 
