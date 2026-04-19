@@ -96,8 +96,10 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 
 /* ── PANEL ── */
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-.ph{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s2);}
-.ph-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.ph{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s3);}
+.ph-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text);}
+/* OTC header keeps its own style */
+.otc-header{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--s3);display:flex;align-items:center;}
 .ph-badge{font-family:var(--df);font-size:12px;font-weight:700;color:var(--muted);background:var(--s3);border:1px solid var(--border);border-radius:4px;padding:2px 8px;}
 .scrollable{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
 .scrollable::-webkit-scrollbar{width:4px;}
@@ -147,8 +149,8 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 
 /* ── ON THE CLOCK ── */
 .otc-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
-.otc-header{padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(26,86,219,.04);display:flex;align-items:center;justify-content:space-between;}
-.otc-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
+.otc-header{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--s3);display:flex;align-items:center;}
+.otc-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text);}
 .otc-row{display:grid;grid-template-columns:1fr 50px;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
 .otc-row:last-child{border-bottom:none;}
 .otc-row:hover{background:var(--s2);}
@@ -476,35 +478,34 @@ function getDraftedSet(){ return new Set(state.slots.filter(s=>s.player).map(s=>
 function getAvail(){ const d=getDraftedSet(); return ALL_PLAYERS.filter(p=>!d.has(norm(p.name))); }
 
 // ─────────────────────────────────────────────────────────────────
-// PARTICIPANT IDENTITY — consistent color + emoji per participant
+// PARTICIPANT IDENTITY — static color assigned by insertion order
 // ─────────────────────────────────────────────────────────────────
 const P_PALETTES = [
-  {color:"#1a56db",bg:"rgba(26,86,219,.1)",emoji:"🦁"},
-  {color:"#15803d",bg:"rgba(21,128,61,.1)",emoji:"🐯"},
-  {color:"#b45309",bg:"rgba(180,83,9,.1)",emoji:"🦊"},
-  {color:"#7c3aed",bg:"rgba(124,58,237,.1)",emoji:"🐺"},
-  {color:"#be123c",bg:"rgba(190,18,60,.1)",emoji:"🦅"},
-  {color:"#0891b2",bg:"rgba(8,145,178,.1)",emoji:"🐬"},
-  {color:"#65a30d",bg:"rgba(101,163,13,.1)",emoji:"🦎"},
-  {color:"#d97706",bg:"rgba(217,119,6,.1)",emoji:"🐻"},
-  {color:"#db2777",bg:"rgba(219,39,119,.1)",emoji:"🦋"},
-  {color:"#0f766e",bg:"rgba(15,118,110,.1)",emoji:"🐢"},
-  {color:"#9333ea",bg:"rgba(147,51,234,.1)",emoji:"🦄"},
-  {color:"#dc2626",bg:"rgba(220,38,38,.1)",emoji:"🦂"},
+  {color:"#1a56db",bg:"rgba(26,86,219,.1)"},
+  {color:"#be123c",bg:"rgba(190,18,60,.1)"},
+  {color:"#15803d",bg:"rgba(21,128,61,.1)"},
+  {color:"#7c3aed",bg:"rgba(124,58,237,.1)"},
+  {color:"#b45309",bg:"rgba(180,83,9,.1)"},
+  {color:"#0891b2",bg:"rgba(8,145,178,.1)"},
+  {color:"#db2777",bg:"rgba(219,39,119,.1)"},
+  {color:"#65a30d",bg:"rgba(101,163,13,.1)"},
+  {color:"#dc2626",bg:"rgba(220,38,38,.1)"},
+  {color:"#0f766e",bg:"rgba(15,118,110,.1)"},
+  {color:"#9333ea",bg:"rgba(147,51,234,.1)"},
+  {color:"#d97706",bg:"rgba(217,119,6,.1)"},
 ];
 
-// Returns a stable palette index for a participant name
+// Returns stable palette index based on insertion order (not rank)
 function pIdx(name){
-  const scores = getAllScores();
-  const i = scores.findIndex(s=>s.name===name);
+  const i = state.participants.findIndex(p=>p.name===name);
   return i>=0 ? i % P_PALETTES.length : 0;
 }
 
 function participantTag(name, size="md"){
   const p = P_PALETTES[pIdx(name)];
   const fs = size==="sm" ? "12px" : "14px";
-  const pad = size==="sm" ? "2px 7px" : "3px 9px";
-  return `<span style="display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:${fs};color:${p.color};background:${p.bg};border-radius:20px;padding:${pad};white-space:nowrap;flex-shrink:0">${p.emoji} ${name}</span>`;
+  const pad = size==="sm" ? "2px 8px" : "3px 10px";
+  return `<span style="display:inline-flex;align-items:center;font-weight:700;font-size:${fs};color:${p.color};background:${p.bg};border-radius:20px;padding:${pad};white-space:nowrap;flex-shrink:0">${name}</span>`;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -614,12 +615,12 @@ function renderLeaderboard(){
       const pc = r.pts===3?"v3":r.pts===1?"v1":"v0";
       const ptsEl = r.pts!=null
         ? `<div class="otc-pts ${pc}">${r.pts}</div>`
-        : `<div class="otc-pts v0" style="font-size:13px;color:var(--muted)">${r.maxPts}max</div>`;
+        : `<div class="otc-pts" style="font-family:var(--df);font-size:16px;font-weight:800;text-align:right;color:#d1d5db">${r.maxPts}</div>`;
       const alreadyDrafted = r.player!=="—" && drafted.has(norm(r.player));
       const playerEl = r.player==="—"
         ? `<span style="color:var(--muted);font-style:italic">No pick</span>`
         : `<span style="${alreadyDrafted?"text-decoration:line-through;color:var(--muted);opacity:.6":""}">
-            ${r.player}${r.pos?` <span style="opacity:.7">${r.pos}</span>`:""}
+            ${r.player}${r.pos?` <span style="color:var(--muted);font-size:11px">${r.pos}</span>`:""}
           </span>`;
       return `<div class="otc-row">
         <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
@@ -631,8 +632,9 @@ function renderLeaderboard(){
     }).join("");
     otcHtml = `<div class="otc-panel">
       <div class="otc-header">
-        <span class="otc-title">On the Clock — Pick ${nextSlot.pick}</span>
-        ${teamBadge(nextSlot.team,24)}
+        ${teamBadge(nextSlot.team,28)}
+        <span class="otc-title" style="flex:1;margin-left:10px">On the Clock — Pick ${nextSlot.pick}</span>
+        <span style="font-family:var(--df);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Max Pts</span>
       </div>
       ${otcRowsHtml||`<div class="empty-state">No participants yet.</div>`}
     </div>`;
@@ -811,7 +813,6 @@ function renderParticipants(){
   }).join("");
 
   return `${subnav}
-  <div style="margin-bottom:.75rem">${participantTag(s.name)}</div>
   <div class="stat-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem">
     <div class="stat-card"><div class="stat-label">Points</div><div class="stat-value">${s.total}</div></div>
     <div class="stat-card"><div class="stat-label">Max Points</div><div class="stat-value">${s.maxPts}</div></div>
