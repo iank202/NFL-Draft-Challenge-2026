@@ -74,7 +74,7 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .stats-numbers{display:flex;align-items:baseline;justify-content:space-between;}
 .stats-big{font-family:var(--df);font-size:20px;font-weight:800;color:var(--text);line-height:1;}
 .stats-pct{font-family:var(--df);font-size:16px;font-weight:800;color:var(--text2);}
-.stats-sub{font-size:11px;color:var(--muted);}
+.stats-sub{font-size:13px;color:var(--muted);}
 .stats-bar{height:4px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:3px;}
 .stats-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
 .stats-bar-fill.green{background:var(--green);}
@@ -149,7 +149,7 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .otc-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
 .otc-header{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--s3);display:flex;align-items:center;}
 .otc-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text);}
-.otc-row{display:grid;grid-template-columns:1fr 50px;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.otc-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
 .otc-row:last-child{border-bottom:none;}
 .otc-row:hover{background:var(--s2);}
 .otc-name{font-size:14px;font-weight:600;}
@@ -599,11 +599,9 @@ function renderLeaderboard(){
             ${r.player}${r.pos?` <span style="color:var(--muted);font-size:11px">${r.pos}</span>`:""}
           </span>`;
       return `<div class="otc-row">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
-          ${participantTag(r.name,"sm")}
-          <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${playerEl}</div>
-        </div>
-        <div style="flex-shrink:0">${ptsEl}</div>
+        <div style="width:110px;flex-shrink:0">${participantTag(r.name,"sm")}</div>
+        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${playerEl}</div>
+        <div style="flex-shrink:0;width:50px;text-align:right">${ptsEl}</div>
       </div>`;
     }).join("");
     otcHtml = `<div class="otc-panel">
@@ -686,7 +684,7 @@ function renderLeaderboard(){
       <div>${teamBadge(slot.team)}</div>
       <div style="min-width:0">
         ${slot.player
-          ? `<div class="pick-name">${slot.player}</div>${slot.isTrade?`<span class="trade-tag">Trade</span>`:""}`
+          ? `<div class="pick-name">${slot.player}${slot.isTrade?` <span class="trade-tag">Trade</span>`:""}</div>`
           : isNext ? `<span class="clock-lbl">On the clock</span>` : `<span class="pick-empty">—</span>`}
         ${slot.tradeNote&&slot.player ? `<div style="font-size:11px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}
       </div>
@@ -835,10 +833,10 @@ function renderAdmin(){
           : `<span style="color:var(--muted);font-size:12px;font-style:italic">← drag player here</span>`}
       </div>
       <div>${filled ? posBadge(slot.pos) : ""}</div>
-      <div>${filled ? `<div class="trade-cb">
+      <div><div class="trade-cb">
         <input type="checkbox" id="tc-${idx}" ${slot.isTrade?"checked":""} onchange="toggleTrade(${idx},this.checked)">
         <label for="tc-${idx}">Trade</label>
-      </div>` : ""}</div>
+      </div></div>
       <div style="display:flex;gap:4px;align-items:center">
         ${filled ? `<button class="btn btn-sm" onclick="editNote(${idx})" style="padding:4px 7px">✎</button>
                     <button class="btn btn-sm btn-danger" onclick="clearSlot(${idx})">✕</button>` : ""}
