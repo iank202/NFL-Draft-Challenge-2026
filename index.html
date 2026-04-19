@@ -158,10 +158,10 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .otc-pts.v3{color:var(--green);}  .otc-pts.v1{color:var(--amber);}  .otc-pts.v0{color:#d1d5db;}
 
 /* ── DRAFT BOARD ── */
-.pick-row{display:grid;grid-template-columns:30px 38px 1fr 42px 58px;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border);transition:background .1s;}
+.pick-row{display:grid;grid-template-columns:10px 30px 38px 1fr 58px;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border);transition:background .1s;}
 .pick-row:last-child{border-bottom:none;}
 .pick-row:hover{background:var(--s2);}
-.pick-row.on-clock{background:rgba(26,86,219,.05);border-left:3px solid var(--accent);}
+.pick-row.on-clock{background:rgba(26,86,219,.05);box-shadow:inset 3px 0 0 var(--accent);}
 .pick-num{font-family:var(--df);font-size:16px;font-weight:800;color:var(--muted);text-align:right;}
 .pick-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pick-empty{font-size:13px;color:var(--muted);font-style:italic;}
@@ -680,6 +680,7 @@ function renderLeaderboard(){
   const boardHtml = state.slots.map(slot=>{
     const isNext = nextSlot && slot.pick===nextSlot.pick;
     return `<div class="pick-row${isNext?" on-clock":""}">
+      <div style="display:flex;align-items:center;justify-content:center">${slot.isTrade ? `<span style="display:block;width:6px;height:6px;border-radius:50%;background:var(--accent2);flex-shrink:0" title="Trade"></span>` : ""}</div>
       <div class="pick-num">${slot.pick}</div>
       <div>${teamBadge(slot.team)}</div>
       <div style="min-width:0">
@@ -688,7 +689,6 @@ function renderLeaderboard(){
           : isNext ? `<span class="clock-lbl">On the clock</span>` : `<span class="pick-empty">—</span>`}
         ${slot.tradeNote ? `<div style="font-size:11px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}
       </div>
-      <div>${slot.isTrade ? `<span class="trade-tag">Trade</span>` : ""}</div>
       <div>${slot.player ? posBadge(slot.pos) : ""}</div>
     </div>`;
   }).join("");
