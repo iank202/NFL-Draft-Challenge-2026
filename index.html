@@ -683,10 +683,13 @@ function renderLeaderboard(){
       <div class="pick-num">${slot.pick}</div>
       <div>${teamBadge(slot.team)}</div>
       <div style="min-width:0">
-        ${slot.player
-          ? `<div class="pick-name">${slot.player}${slot.isTrade?` <span class="trade-tag">Trade</span>`:""}</div>`
-          : isNext ? `<span class="clock-lbl">On the clock</span>` : `<span class="pick-empty">—</span>`}
-        ${slot.tradeNote&&slot.player ? `<div style="font-size:11px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          ${slot.player
+            ? `<span class="pick-name">${slot.player}</span>`
+            : isNext ? `<span class="clock-lbl">On the clock</span>` : `<span class="pick-empty">—</span>`}
+          ${slot.isTrade ? `<span class="trade-tag">Trade</span>` : ""}
+        </div>
+        ${slot.tradeNote ? `<div style="font-size:11px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}
       </div>
       <div>${slot.player ? posBadge(slot.pos) : ""}</div>
     </div>`;
@@ -828,9 +831,9 @@ function renderAdmin(){
       <div>${teamSelect}</div>
       <div style="min-width:0">
         ${filled
-          ? `<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${slot.player}</div>
-             ${slot.tradeNote ? `<div style="font-size:10px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}`
+          ? `<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${slot.player}</div>`
           : `<span style="color:var(--muted);font-size:12px;font-style:italic">← drag player here</span>`}
+        ${slot.tradeNote ? `<div style="font-size:10px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}
       </div>
       <div>${filled ? posBadge(slot.pos) : ""}</div>
       <div><div class="trade-cb">
@@ -838,8 +841,8 @@ function renderAdmin(){
         <label for="tc-${idx}">Trade</label>
       </div></div>
       <div style="display:flex;gap:4px;align-items:center">
-        ${filled ? `<button class="btn btn-sm" onclick="editNote(${idx})" style="padding:4px 7px">✎</button>
-                    <button class="btn btn-sm btn-danger" onclick="clearSlot(${idx})">✕</button>` : ""}
+        <button class="btn btn-sm" onclick="editNote(${idx})" style="padding:4px 7px">✎</button>
+        ${filled ? `<button class="btn btn-sm btn-danger" onclick="clearSlot(${idx})">✕</button>` : ""}
       </div>
     </div>`;
   }).join("");
