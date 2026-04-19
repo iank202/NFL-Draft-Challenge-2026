@@ -66,14 +66,14 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 
 /* ── STATS PANEL ── */
 .stats-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
-.stats-header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--s2);}
-.stats-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.stats-header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--s3);}
+.stats-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text);}
 .stats-body{padding:10px 14px;display:flex;flex-direction:column;gap:10px;}
 .stats-row{display:flex;flex-direction:column;gap:3px;}
 .stats-label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em;font-family:var(--df);}
 .stats-numbers{display:flex;align-items:baseline;gap:6px;}
 .stats-big{font-family:var(--df);font-size:20px;font-weight:800;color:var(--text);line-height:1;}
-.stats-pct{font-family:var(--df);font-size:13px;font-weight:700;color:var(--accent);}
+.stats-pct{font-family:var(--df);font-size:13px;font-weight:700;color:var(--muted);}
 .stats-sub{font-size:11px;color:var(--muted);}
 .stats-bar{height:4px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:3px;}
 .stats-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
@@ -81,7 +81,7 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .stats-bar-fill.blue{background:var(--accent);}
 
 
-.site-title{font-family:var(--df);font-size:24px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--accent);}
+.site-title{font-family:var(--df);font-size:24px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--text);}
 .live-dot{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
 .live-dot .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
 .live-dot.live .dot{background:var(--green);box-shadow:0 0 7px rgba(21,128,61,.5);animation:pulse 2s infinite;}
@@ -218,8 +218,8 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .pp-max{font-family:var(--df);font-size:12px;font-weight:600;color:var(--muted);display:block;text-align:right;}
 
 /* ── HEADER BUTTONS ── */
-.btn-form{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:6px;font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:rgba(26,86,219,.06);transition:all .15s;white-space:nowrap;}
-.btn-form:hover{background:var(--accent);color:#fff;}
+.btn-form{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:6px;font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:1px solid var(--border2);color:var(--text2);background:var(--surface);transition:all .15s;white-space:nowrap;}
+.btn-form:hover{background:var(--s3);border-color:var(--text2);}
 .btn-venmo{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:6px;font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:1px solid #008CFF;color:#008CFF;background:rgba(0,140,255,.06);transition:all .15s;white-space:nowrap;}
 .btn-venmo:hover{background:#008CFF;color:#fff;}
 @media(max-width:700px){
@@ -503,9 +503,9 @@ function pIdx(name){
 
 function participantTag(name, size="md"){
   const p = P_PALETTES[pIdx(name)];
-  const fs = size==="sm" ? "12px" : "14px";
-  const pad = size==="sm" ? "2px 8px" : "3px 10px";
-  return `<span style="display:inline-flex;align-items:center;font-weight:700;font-size:${fs};color:${p.color};background:${p.bg};border-radius:20px;padding:${pad};white-space:nowrap;flex-shrink:0">${name}</span>`;
+  const fs = size==="sm" ? "11px" : "13px";
+  const pad = size==="sm" ? "3px 8px" : "4px 10px";
+  return `<span style="display:inline-flex;align-items:center;font-family:var(--df);font-weight:800;font-size:${fs};color:${p.color};background:${p.bg};border:1px solid ${p.color}33;border-radius:5px;padding:${pad};white-space:nowrap;flex-shrink:0;letter-spacing:.02em">${name}</span>`;
 }
 
 // ─────────────────────────────────────────────────────────────────
