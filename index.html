@@ -146,7 +146,7 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .otc-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
 .otc-header{padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(26,86,219,.04);display:flex;align-items:center;justify-content:space-between;}
 .otc-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
-.otc-row{display:grid;grid-template-columns:1fr 58px 64px;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.otc-row{display:grid;grid-template-columns:1fr 50px;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
 .otc-row:last-child{border-bottom:none;}
 .otc-row:hover{background:var(--s2);}
 .otc-name{font-size:14px;font-weight:600;}
@@ -463,8 +463,8 @@ function posBadge(pos){
 
 function teamBadge(team, size=34){
   const [bg,bd] = TEAM_COLORS[team]||["#888","#ccc"];
-  const fs = size<=28 ? 9 : 10;
-  return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:5px;background:${bg};border:2px solid ${bd};font-family:var(--df);font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0">${team}</span>`;
+  const fs = size<=28 ? 11 : 13;
+  return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:5px;background:${bg};border:2px solid ${bd};font-family:var(--df);font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:-.02em">${team}</span>`;
 }
 
 function getDraftedSet(){ return new Set(state.slots.filter(s=>s.player).map(s=>norm(s.player))); }
@@ -576,8 +576,13 @@ function renderLeaderboard(){
       const pc = r.pts===3?"v3":r.pts===1?"v1":"v0";
       const ptsEl = r.pts!=null ? `<div class="otc-pts ${pc}">${r.pts}</div>` : `<div class="otc-pts v0">—</div>`;
       return `<div class="otc-row">
-        <div><div class="otc-name">${r.name}</div><div class="otc-player">${r.player}${r.pos?` · ${r.pos}`:""}</div></div>
-        <div>${r.pos?posBadge(r.pos):""}</div>
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+          ${r.pos?posBadge(r.pos):""}
+          <div style="min-width:0">
+            <span class="otc-name">${r.name}</span>
+            <span class="otc-player" style="margin-left:6px">${r.player}</span>
+          </div>
+        </div>
         <div>${ptsEl}</div>
       </div>`;
     }).join("");
