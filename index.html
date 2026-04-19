@@ -98,8 +98,6 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
 .ph{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s3);}
 .ph-title{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text);}
-/* OTC header keeps its own style */
-.otc-header{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--s3);display:flex;align-items:center;}
 .ph-badge{font-family:var(--df);font-size:12px;font-weight:700;color:var(--muted);background:var(--s3);border:1px solid var(--border);border-radius:4px;padding:2px 8px;}
 .scrollable{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
 .scrollable::-webkit-scrollbar{width:4px;}
@@ -115,14 +113,14 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .lb-table tr{cursor:pointer;}
 .lb-rank{font-family:var(--df);font-size:20px;font-weight:800;}
 .rank-1{color:var(--gold);}  .rank-2{color:var(--silver);}  .rank-3{color:var(--bronze);}  .rank-n{color:var(--muted);}
-.lb-name{font-weight:600;font-size:16px;}
-.lb-pts{font-family:var(--df);font-size:28px;font-weight:800;line-height:1;}
-.lb-max{font-family:var(--df);font-size:20px;font-weight:700;color:var(--text2);}
+.lb-pts{font-family:var(--df);font-size:28px;font-weight:800;line-height:1;color:var(--green);}
+.lb-max{font-family:var(--df);font-size:14px;font-weight:600;color:var(--muted);}
+.lb-correct{font-family:var(--df);font-size:20px;font-weight:800;color:var(--text);}
 
 /* ── PRIZE POOL ── */
 .pot-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
-.pot-header{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.pot-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.pot-header{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s3);}
+.pot-title{font-family:var(--df);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text);}
 .pot-body{padding:6px 14px 10px;}
 .pot-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--border);}
 .pot-row:last-child{border-bottom:none;}
@@ -562,6 +560,7 @@ function getPayout(){
 function renderLeaderboard(){
   const scores      = getAllScores();
   const avail       = getAvail();
+  const drafted     = getDraftedSet(); // memoized for use in OTC strikethrough
   const pickedCount = state.slots.filter(s=>s.player).length;
   const nextSlot    = state.slots.find(s=>!s.player);
   const {pot,fee,payouts} = getPayout();
@@ -574,9 +573,9 @@ function renderLeaderboard(){
         return `<tr onclick="viewParticipant('${s.name.replace(/'/g,"\\'")}')">
           <td><span class="lb-rank ${rc}">${i+1}</span></td>
           <td>${participantTag(s.name)}</td>
-          <td><span style="font-family:var(--df);font-size:28px;font-weight:800;line-height:1;color:var(--green)">${s.total}</span></td>
+          <td><span class="lb-pts">${s.total}</span></td>
           <td><span class="lb-max">${s.maxPts}</span></td>
-          <td><span style="font-family:var(--df);font-size:20px;font-weight:800;color:var(--text)">${correct}</span></td>
+          <td><span class="lb-correct">${correct}</span></td>
         </tr>`;
       }).join("")
     : `<tr><td colspan="5"><div class="empty-state">No participants yet.</div></td></tr>`;
@@ -584,7 +583,6 @@ function renderLeaderboard(){
   // On-the-clock panel
   let otcHtml = "";
   if(nextSlot){
-    const drafted = getDraftedSet();
     const otcRows = scores.map(s=>{
       const pk = s.pickScores.find(x=>x.pick===nextSlot.pick);
       return {name:s.name, player:pk?.player||"—", pos:pk?.pos||"", pts:pk?.pts, maxPts:pk?.maxPts??0};
