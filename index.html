@@ -23,8 +23,9 @@ body{font-family:var(--bf);background:var(--bg);color:var(--text);font-size:15px
 
 /* ── LAYOUT ── */
 header{background:var(--surface);border-bottom:2px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;}
-.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;overflow-x:auto;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tabs-btns{display:flex;align-items:center;gap:8px;flex-shrink:0;padding:8px 0 8px 12px;}
 .main{padding:1.25rem 1.5rem;}
 /* Two-column: leaderboard col | board+avail col */
 .col3{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:1.25rem;align-items:start;}
@@ -47,8 +48,10 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
   .site-title{font-size:18px;}
   .main{padding:.75rem;}
   .scrollable{max-height:none !important;}
-  /* Participants stat cards: single column on mobile */
-  .stat-cards-grid{grid-template-columns:1fr !important;}
+  /* Participants stat cards: single row, compact on mobile */
+  .stat-cards-grid{grid-template-columns:repeat(3,1fr) !important;}
+  .stat-card{padding:10px 12px;}
+  .stat-value{font-size:28px !important;}
   /* Participant pick row: tighter on mobile */
   .pp-row{grid-template-columns:24px 28px 1fr 44px 50px;gap:5px;padding:8px 10px;}
   /* Admin: single column */
@@ -212,15 +215,15 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .pp-pts.v3{color:var(--green);}  .pp-pts.v1{color:var(--amber);}  .pp-pts.v0,.pp-pts.vn{color:#d1d5db;}
 .pp-max{font-family:var(--df);font-size:12px;font-weight:600;color:var(--muted);display:block;text-align:right;}
 
-/* ── ENTRY BAR ── */
-.entry-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 1.5rem;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-.entry-bar-label{font-family:var(--df);font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
-.entry-bar-divider{width:1px;height:20px;background:var(--border);flex-shrink:0;}
-.btn-form{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:6px;font-family:var(--df);font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:rgba(26,86,219,.06);transition:all .15s;white-space:nowrap;}
+/* ── HEADER BUTTONS ── */
+.btn-form{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:6px;font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:rgba(26,86,219,.06);transition:all .15s;white-space:nowrap;}
 .btn-form:hover{background:var(--accent);color:#fff;}
-.btn-venmo{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:6px;font-family:var(--df);font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:1px solid #008CFF;color:#008CFF;background:rgba(0,140,255,.06);transition:all .15s;white-space:nowrap;}
+.btn-venmo{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:6px;font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:1px solid #008CFF;color:#008CFF;background:rgba(0,140,255,.06);transition:all .15s;white-space:nowrap;}
 .btn-venmo:hover{background:#008CFF;color:#fff;}
-@media(max-width:600px){.entry-bar{padding:10px 1rem;gap:10px;}}
+@media(max-width:700px){
+  .btn-form .btn-label,.btn-venmo .btn-label{display:none;}
+  .btn-form,.btn-venmo{padding:6px 8px;}
+}
 
 
 .admin-gate{display:flex;align-items:center;justify-content:center;min-height:300px;}
@@ -258,22 +261,24 @@ textarea{min-height:110px;resize:vertical;font-size:13px;}
 
 <header>
   <span class="site-title">NFL Mock Draft Challenge 2026</span>
-  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
     <div class="sync-dot" id="sync-dot"><span class="sdot"></span><span id="sync-label">Syncing…</span></div>
-    <div id="countdown" style="font-family:var(--df);font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.05em"></div>
+    <div id="countdown" style="font-family:var(--df);font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em"></div>
     <div class="live-dot" id="live-dot"><span class="dot"></span><span id="live-label">Pre-draft</span></div>
   </div>
 </header>
-<div class="nav-tabs" id="nav-tabs"></div>
-<div class="entry-bar">
-  <a class="btn-form" href="https://forms.gle/c2vJfQvK2CCzSuUUA" target="_blank">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-    Submit Picks
-  </a>
-  <a class="btn-venmo" href="https://venmo.com/ian-kay" target="_blank">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.01 1.628c.378.626.548 1.27.548 2.087 0 2.601-2.22 5.983-4.028 8.354H11.44L9.734 2.66l-4.576.44L7.1 22.372h7.674C18.1 17.13 22 9.423 22 4.54c0-1.07-.19-2.015-.548-2.796l-2.442-.116z"/></svg>
-    Venmo @ian-kay
-  </a>
+<div class="nav-tabs" id="nav-tabs">
+  <div id="nav-tabs-left" style="display:flex"></div>
+  <div class="nav-tabs-btns">
+    <a class="btn-form" href="https://forms.gle/c2vJfQvK2CCzSuUUA" target="_blank">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span class="btn-label">Submit Picks</span>
+    </a>
+    <a class="btn-venmo" href="https://venmo.com/ian-kay" target="_blank">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19.01 1.628c.378.626.548 1.27.548 2.087 0 2.601-2.22 5.983-4.028 8.354H11.44L9.734 2.66l-4.576.44L7.1 22.372h7.674C18.1 17.13 22 9.423 22 4.54c0-1.07-.19-2.015-.548-2.796l-2.442-.116z"/></svg>
+      <span class="btn-label">Venmo @ian-kay</span>
+    </a>
+  </div>
 </div>
 <div class="main" id="main-content"></div>
 
@@ -1125,7 +1130,7 @@ function updateLiveDot(){
 }
 
 function renderAll(){
-  const nav=document.getElementById("nav-tabs");
+  const nav=document.getElementById("nav-tabs-left");
   const content=document.getElementById("main-content");
   if(!nav||!content) return;
   // Safety net — re-init if state got corrupted
