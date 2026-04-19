@@ -71,9 +71,9 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .stats-body{padding:10px 14px;display:flex;flex-direction:column;gap:10px;}
 .stats-row{display:flex;flex-direction:column;gap:3px;}
 .stats-label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em;font-family:var(--df);}
-.stats-numbers{display:flex;align-items:baseline;gap:6px;}
+.stats-numbers{display:flex;align-items:baseline;justify-content:space-between;}
 .stats-big{font-family:var(--df);font-size:20px;font-weight:800;color:var(--text);line-height:1;}
-.stats-pct{font-family:var(--df);font-size:13px;font-weight:700;color:var(--muted);}
+.stats-pct{font-family:var(--df);font-size:16px;font-weight:800;color:var(--text2);}
 .stats-sub{font-size:11px;color:var(--muted);}
 .stats-bar{height:4px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:3px;}
 .stats-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
@@ -117,7 +117,7 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .rank-1{color:var(--gold);}  .rank-2{color:var(--silver);}  .rank-3{color:var(--bronze);}  .rank-n{color:var(--muted);}
 .lb-name{font-weight:600;font-size:16px;}
 .lb-pts{font-family:var(--df);font-size:28px;font-weight:800;line-height:1;}
-.lb-max{font-family:var(--df);font-size:14px;font-weight:600;color:var(--muted);}
+.lb-max{font-family:var(--df);font-size:20px;font-weight:700;color:var(--text2);}
 
 /* ── PRIZE POOL ── */
 .pot-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);margin-top:.75rem;overflow:hidden;}
@@ -200,9 +200,9 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 
 /* ── PARTICIPANT TAB ── */
 .p-subnav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.25rem;}
-.p-btn{cursor:pointer;border:2px solid transparent;background:transparent;border-radius:24px;padding:2px;transition:border-color .12s;}
-.p-btn:hover{border-color:var(--border2);}
-.p-btn.active{border-color:var(--accent2);}
+.p-btn{font-family:var(--df);font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted);transition:all .12s;}
+.p-btn:hover{color:var(--text);border-color:var(--text);}
+.p-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;}
 .stat-label{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
 .stat-value{font-family:var(--df);font-size:40px;font-weight:800;line-height:1.1;}
@@ -477,35 +477,11 @@ function teamBadge(team, size=34){
 function getDraftedSet(){ return new Set(state.slots.filter(s=>s.player).map(s=>norm(s.player))); }
 function getAvail(){ const d=getDraftedSet(); return ALL_PLAYERS.filter(p=>!d.has(norm(p.name))); }
 
-// ─────────────────────────────────────────────────────────────────
-// PARTICIPANT IDENTITY — static color assigned by insertion order
-// ─────────────────────────────────────────────────────────────────
-const P_PALETTES = [
-  {color:"#1a56db",bg:"rgba(26,86,219,.1)"},
-  {color:"#be123c",bg:"rgba(190,18,60,.1)"},
-  {color:"#15803d",bg:"rgba(21,128,61,.1)"},
-  {color:"#7c3aed",bg:"rgba(124,58,237,.1)"},
-  {color:"#b45309",bg:"rgba(180,83,9,.1)"},
-  {color:"#0891b2",bg:"rgba(8,145,178,.1)"},
-  {color:"#db2777",bg:"rgba(219,39,119,.1)"},
-  {color:"#65a30d",bg:"rgba(101,163,13,.1)"},
-  {color:"#dc2626",bg:"rgba(220,38,38,.1)"},
-  {color:"#0f766e",bg:"rgba(15,118,110,.1)"},
-  {color:"#9333ea",bg:"rgba(147,51,234,.1)"},
-  {color:"#d97706",bg:"rgba(217,119,6,.1)"},
-];
-
-// Returns stable palette index based on insertion order (not rank)
-function pIdx(name){
-  const i = state.participants.findIndex(p=>p.name===name);
-  return i>=0 ? i % P_PALETTES.length : 0;
-}
-
+// Participant name — plain text, no color badge
 function participantTag(name, size="md"){
-  const p = P_PALETTES[pIdx(name)];
-  const fs = size==="sm" ? "11px" : "13px";
-  const pad = size==="sm" ? "3px 8px" : "4px 10px";
-  return `<span style="display:inline-flex;align-items:center;font-family:var(--df);font-weight:800;font-size:${fs};color:${p.color};background:${p.bg};border:1px solid ${p.color}33;border-radius:5px;padding:${pad};white-space:nowrap;flex-shrink:0;letter-spacing:.02em">${name}</span>`;
+  const fs = size==="sm" ? "13px" : "15px";
+  const fw = size==="sm" ? "600" : "700";
+  return `<span style="font-size:${fs};font-weight:${fw};color:var(--text)">${name}</span>`;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -615,7 +591,7 @@ function renderLeaderboard(){
       const pc = r.pts===3?"v3":r.pts===1?"v1":"v0";
       const ptsEl = r.pts!=null
         ? `<div class="otc-pts ${pc}">${r.pts}</div>`
-        : `<div class="otc-pts" style="font-family:var(--df);font-size:16px;font-weight:800;text-align:right;color:#d1d5db">${r.maxPts}</div>`;
+        : `<div class="otc-pts" style="font-family:var(--df);font-size:16px;font-weight:800;text-align:right;color:var(--text2)">${r.maxPts}</div>`;
       const alreadyDrafted = r.player!=="—" && drafted.has(norm(r.player));
       const playerEl = r.player==="—"
         ? `<span style="color:var(--muted);font-style:italic">No pick</span>`
@@ -655,8 +631,7 @@ function renderLeaderboard(){
       <div class="stats-row">
         <div class="stats-label">Correct Picks</div>
         <div class="stats-numbers">
-          <span class="stats-big">${correctPicks}</span>
-          <span class="stats-sub">of ${totalResolved}</span>
+          <span><span class="stats-big">${correctPicks}</span> <span class="stats-sub">of ${totalResolved}</span></span>
           <span class="stats-pct">${pickPct}%</span>
         </div>
         <div class="stats-bar"><div class="stats-bar-fill green" style="width:${pickPct}%"></div></div>
@@ -664,8 +639,7 @@ function renderLeaderboard(){
       <div class="stats-row">
         <div class="stats-label">Points Earned</div>
         <div class="stats-numbers">
-          <span class="stats-big">${totalPtsEarned}</span>
-          <span class="stats-sub">of ${maxPtsPossible} max</span>
+          <span><span class="stats-big">${totalPtsEarned}</span> <span class="stats-sub">of ${maxPtsPossible} max</span></span>
           <span class="stats-pct">${ptsPct}%</span>
         </div>
         <div class="stats-bar"><div class="stats-bar-fill blue" style="width:${ptsPct}%"></div></div>
