@@ -198,9 +198,9 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 
 /* ── PARTICIPANT TAB ── */
 .p-subnav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.25rem;}
-.p-btn{font-family:var(--df);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted);transition:all .12s;}
-.p-btn:hover{color:var(--text);border-color:var(--accent);}
-.p-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.p-btn{cursor:pointer;border:2px solid transparent;background:transparent;border-radius:24px;padding:2px;transition:border-color .12s;}
+.p-btn:hover{border-color:var(--border2);}
+.p-btn.active{border-color:var(--accent2);}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;}
 .stat-label{font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
 .stat-value{font-family:var(--df);font-size:40px;font-weight:800;line-height:1.1;}
@@ -476,6 +476,38 @@ function getDraftedSet(){ return new Set(state.slots.filter(s=>s.player).map(s=>
 function getAvail(){ const d=getDraftedSet(); return ALL_PLAYERS.filter(p=>!d.has(norm(p.name))); }
 
 // ─────────────────────────────────────────────────────────────────
+// PARTICIPANT IDENTITY — consistent color + emoji per participant
+// ─────────────────────────────────────────────────────────────────
+const P_PALETTES = [
+  {color:"#1a56db",bg:"rgba(26,86,219,.1)",emoji:"🦁"},
+  {color:"#15803d",bg:"rgba(21,128,61,.1)",emoji:"🐯"},
+  {color:"#b45309",bg:"rgba(180,83,9,.1)",emoji:"🦊"},
+  {color:"#7c3aed",bg:"rgba(124,58,237,.1)",emoji:"🐺"},
+  {color:"#be123c",bg:"rgba(190,18,60,.1)",emoji:"🦅"},
+  {color:"#0891b2",bg:"rgba(8,145,178,.1)",emoji:"🐬"},
+  {color:"#65a30d",bg:"rgba(101,163,13,.1)",emoji:"🦎"},
+  {color:"#d97706",bg:"rgba(217,119,6,.1)",emoji:"🐻"},
+  {color:"#db2777",bg:"rgba(219,39,119,.1)",emoji:"🦋"},
+  {color:"#0f766e",bg:"rgba(15,118,110,.1)",emoji:"🐢"},
+  {color:"#9333ea",bg:"rgba(147,51,234,.1)",emoji:"🦄"},
+  {color:"#dc2626",bg:"rgba(220,38,38,.1)",emoji:"🦂"},
+];
+
+// Returns a stable palette index for a participant name
+function pIdx(name){
+  const scores = getAllScores();
+  const i = scores.findIndex(s=>s.name===name);
+  return i>=0 ? i % P_PALETTES.length : 0;
+}
+
+function participantTag(name, size="md"){
+  const p = P_PALETTES[pIdx(name)];
+  const fs = size==="sm" ? "12px" : "14px";
+  const pad = size==="sm" ? "2px 7px" : "3px 9px";
+  return `<span style="display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:${fs};color:${p.color};background:${p.bg};border-radius:20px;padding:${pad};white-space:nowrap;flex-shrink:0">${p.emoji} ${name}</span>`;
+}
+
+// ─────────────────────────────────────────────────────────────────
 // SCORING
 // ─────────────────────────────────────────────────────────────────
 function scoreParticipant(p){
@@ -563,7 +595,7 @@ function renderLeaderboard(){
         const rc = i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"rank-n";
         return `<tr onclick="viewParticipant('${s.name.replace(/'/g,"\\'")}')">
           <td><span class="lb-rank ${rc}">${i+1}</span></td>
-          <td><span class="lb-name">${s.name}</span></td>
+          <td>${participantTag(s.name)}</td>
           <td><span class="lb-pts">${s.total}</span></td>
           <td><span class="lb-max">${s.maxPts}</span></td>
         </tr>`;
@@ -573,22 +605,28 @@ function renderLeaderboard(){
   // On-the-clock panel
   let otcHtml = "";
   if(nextSlot){
+    const drafted = getDraftedSet();
     const otcRows = scores.map(s=>{
       const pk = s.pickScores.find(x=>x.pick===nextSlot.pick);
-      return {name:s.name, player:pk?.player||"—", pos:pk?.pos||"", pts:pk?.pts, total:s.total, maxPts:s.maxPts};
-    }); // already in leaderboard order from getAllScores()
+      return {name:s.name, player:pk?.player||"—", pos:pk?.pos||"", pts:pk?.pts, maxPts:pk?.maxPts??0};
+    });
     const otcRowsHtml = otcRows.map(r=>{
       const pc = r.pts===3?"v3":r.pts===1?"v1":"v0";
-      const ptsEl = r.pts!=null ? `<div class="otc-pts ${pc}">${r.pts}</div>` : `<div class="otc-pts v0">—</div>`;
+      const ptsEl = r.pts!=null
+        ? `<div class="otc-pts ${pc}">${r.pts}</div>`
+        : `<div class="otc-pts v0" style="font-size:13px;color:var(--muted)">${r.maxPts}max</div>`;
+      const alreadyDrafted = r.player!=="—" && drafted.has(norm(r.player));
+      const playerEl = r.player==="—"
+        ? `<span style="color:var(--muted);font-style:italic">No pick</span>`
+        : `<span style="${alreadyDrafted?"text-decoration:line-through;color:var(--muted);opacity:.6":""}">
+            ${r.player}${r.pos?` <span style="opacity:.7">${r.pos}</span>`:""}
+          </span>`;
       return `<div class="otc-row">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0">
-          ${r.pos?posBadge(r.pos):""}
-          <div style="min-width:0">
-            <span class="otc-name">${r.name}</span>
-            <span class="otc-player" style="margin-left:6px">${r.player}</span>
-          </div>
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+          ${participantTag(r.name,"sm")}
+          <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${playerEl}</div>
         </div>
-        <div>${ptsEl}</div>
+        <div style="flex-shrink:0">${ptsEl}</div>
       </div>`;
     }).join("");
     otcHtml = `<div class="otc-panel">
@@ -734,13 +772,19 @@ function selectParticipant(name){ activeParticipant=name; renderAll(); }
 
 function renderParticipants(){
   const scores = getAllScores();
+
+  // Default to first participant if none selected or selection no longer exists
+  if((!activeParticipant || !scores.find(x=>x.name===activeParticipant)) && scores.length){
+    activeParticipant = scores[0].name;
+  }
+
   const subnav = `<div class="p-subnav">${
     scores.map(s=>
-      `<button class="p-btn${activeParticipant===s.name?" active":""}" onclick="selectParticipant('${s.name.replace(/'/g,"\\'")}');">${s.name}</button>`
+      `<button class="p-btn${activeParticipant===s.name?" active":""}" onclick="selectParticipant('${s.name.replace(/'/g,"\\'")}');">${participantTag(s.name,"sm")}</button>`
     ).join("")
   }</div>`;
 
-  if(!activeParticipant || !state.participants.length)
+  if(!state.participants.length)
     return subnav + `<div class="empty-state" style="padding:3rem">No participants yet.</div>`;
 
   const s = scores.find(x=>x.name===activeParticipant);
@@ -767,6 +811,7 @@ function renderParticipants(){
   }).join("");
 
   return `${subnav}
+  <div style="margin-bottom:.75rem">${participantTag(s.name)}</div>
   <div class="stat-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem">
     <div class="stat-card"><div class="stat-label">Points</div><div class="stat-value">${s.total}</div></div>
     <div class="stat-card"><div class="stat-label">Max Points</div><div class="stat-value">${s.maxPts}</div></div>
