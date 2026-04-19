@@ -568,15 +568,10 @@ function renderLeaderboard(){
   // On-the-clock panel
   let otcHtml = "";
   if(nextSlot){
-    const otcRows = state.participants.map(p=>{
-      const sc = scoreParticipant(p);
-      const pk = sc.pickScores.find(x=>x.pick===nextSlot.pick);
-      return {name:p.name, player:pk?.player||"—", pos:pk?.pos||"", pts:pk?.pts};
-    }).sort((a,b)=>{
-      if(!a.player||a.player==="—") return 1;
-      if(!b.player||b.player==="—") return -1;
-      return a.player.localeCompare(b.player);
-    });
+    const otcRows = scores.map(s=>{
+      const pk = s.pickScores.find(x=>x.pick===nextSlot.pick);
+      return {name:s.name, player:pk?.player||"—", pos:pk?.pos||"", pts:pk?.pts, total:s.total, maxPts:s.maxPts};
+    }); // already in leaderboard order from getAllScores()
     const otcRowsHtml = otcRows.map(r=>{
       const pc = r.pts===3?"v3":r.pts===1?"v1":"v0";
       const ptsEl = r.pts!=null ? `<div class="otc-pts ${pc}">${r.pts}</div>` : `<div class="otc-pts v0">—</div>`;
@@ -730,8 +725,8 @@ function selectParticipant(name){ activeParticipant=name; renderAll(); }
 function renderParticipants(){
   const scores = getAllScores();
   const subnav = `<div class="p-subnav">${
-    state.participants.map(p=>
-      `<button class="p-btn${activeParticipant===p.name?" active":""}" onclick="selectParticipant('${p.name.replace(/'/g,"\\'")}');">${p.name}</button>`
+    scores.map(s=>
+      `<button class="p-btn${activeParticipant===s.name?" active":""}" onclick="selectParticipant('${s.name.replace(/'/g,"\\'")}');">${s.name}</button>`
     ).join("")
   }</div>`;
 
