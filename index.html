@@ -570,14 +570,16 @@ function renderLeaderboard(){
   const lbRows = scores.length
     ? scores.map((s,i)=>{
         const rc = i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"rank-n";
+        const correct = s.pickScores.filter(pk=>pk.pts===3).length;
         return `<tr onclick="viewParticipant('${s.name.replace(/'/g,"\\'")}')">
           <td><span class="lb-rank ${rc}">${i+1}</span></td>
           <td>${participantTag(s.name)}</td>
           <td><span class="lb-pts">${s.total}</span></td>
+          <td><span style="font-family:var(--df);font-size:20px;font-weight:800;color:var(--green);line-height:1">${correct}</span></td>
           <td><span class="lb-max">${s.maxPts}</span></td>
         </tr>`;
       }).join("")
-    : `<tr><td colspan="4"><div class="empty-state">No participants yet.</div></td></tr>`;
+    : `<tr><td colspan="5"><div class="empty-state">No participants yet.</div></td></tr>`;
 
   // On-the-clock panel
   let otcHtml = "";
@@ -709,7 +711,7 @@ function renderLeaderboard(){
       <div class="panel">
         <div class="ph"><span class="ph-title">Leaderboard</span><span class="ph-badge">${state.participants.length} entries</span></div>
         <div class="scrollable" style="max-height:calc(100vh - 420px)"><table class="lb-table">
-          <thead><tr><th width="36">#</th><th>Participant</th><th>Points</th><th>Max Pts</th></tr></thead>
+          <thead><tr><th width="36">#</th><th>Participant</th><th>Pts</th><th>✓</th><th>Max</th></tr></thead>
           <tbody>${lbRows}</tbody>
         </table></div>
       </div>
@@ -771,12 +773,13 @@ function renderParticipants(){
     const decided = pk.pts !== null;
     const rc = decided&&pk.pts===3?"r3":decided&&pk.pts===1?"r1":"";
     const pc = pk.pts===3?"v3":pk.pts===1?"v1":decided?"v0":"vn";
+    const reason = pk.reason || (decided && pk.pts===0 && pk.player ? "incorrect pick ✗" : "");
     return `<div class="pp-row ${rc}">
       <div class="pick-num" style="font-size:14px;font-weight:800">${pk.pick}</div>
       <div>${teamBadge(pk.team,28)}</div>
       <div style="min-width:0">
         <div class="pp-name">${pk.player||"—"}</div>
-        ${pk.reason ? `<div class="pp-reason">${pk.reason}</div>` : ""}
+        ${reason ? `<div class="pp-reason">${reason}</div>` : ""}
       </div>
       <div>${posBadge(pk.pos)}</div>
       <div>
