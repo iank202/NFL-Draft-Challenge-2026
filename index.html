@@ -396,10 +396,10 @@ const SK = 'nfl2026v6'; // localStorage fallback key
 let commissionerKey = ''; // set when admin unlocks
 
 function sanitizeState(s){
-  if(!Array.isArray(s.slots))        s.slots = DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}}));
+  if(!Array.isArray(s.slots))        s.slots = DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,isVoid:false,tradeNote:"",overrides:{}}));
   if(!Array.isArray(s.participants)) s.participants = [];
   if(!s.entryFee)                    s.entryFee = 50;
-  s.slots.forEach(sl=>{ if(!sl.overrides) sl.overrides={}; });
+  s.slots.forEach(sl=>{ if(!sl.overrides) sl.overrides={}; if(sl.isVoid===undefined) sl.isVoid=false; });
   s.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
   return s;
 }
@@ -502,6 +502,11 @@ function scoreParticipant(p){
 
     if(dupes.has(pn))
       return {...pk, pts:0, maxPts:0, reason:"void — duplicate mock"};
+
+    if(slot?.isVoid){
+      total+=0; maxPts+=0;
+      return {...pk, pts:0, maxPts:0, reason:"pick voided ✕"};
+    }
 
     if(slot?.player){
       const ovKey = `${pk.pick}_${norm(p.name)}`;
@@ -670,7 +675,7 @@ function renderLeaderboard(){
       <div class="rule"><span class="rule-badge pts">1</span><div class="rule-text">Point if a team has multiple picks and you select the correct player but in the wrong slot.
         <div class="rule-sub">E.g.: In 2023, HOU had picks No. 2 and No. 12. Participants who mocked Will Anderson to HOU at No. 2 received 1 pt when HOU selected him at No. 3. Participants who mocked Anderson to HOU at No. 12 received 3 pts.</div>
       </div></div>
-      <div class="rule"><span class="rule-badge zero">0</span><div class="rule-text">If a team trades from outside the first round into the first round, that pick is null.</div></div>
+      <div class="rule"><span class="rule-badge zero">0</span><div class="rule-text">If a team trades from outside the first round into the first round, the pick is void and scored 0 for all participants.</div></div>
       <div class="rule"><span class="rule-badge info">⇄</span><div class="rule-text">If a team trades multiple 1st round picks to move up for one pick, you receive points for correctly mocking either pick.</div></div>
       <div class="rule"><span class="rule-badge void">✕</span><div class="rule-text">If you mock the same player in multiple slots, he is void in all slots.</div></div>
     </div>
@@ -680,7 +685,13 @@ function renderLeaderboard(){
   const boardHtml = state.slots.map(slot=>{
     const isNext = nextSlot && slot.pick===nextSlot.pick;
     return `<div class="pick-row${isNext?" on-clock":""}">
-      <div style="display:flex;align-items:center;justify-content:center">${slot.isTrade ? `<span style="display:block;width:6px;height:6px;border-radius:50%;background:var(--accent2);flex-shrink:0" title="Trade"></span>` : ""}</div>
+      <div style="display:flex;align-items:center;justify-content:center">
+        ${slot.isVoid
+          ? `<span style="font-size:10px;font-weight:800;color:var(--red);line-height:1" title="Voided">✕</span>`
+          : slot.isTrade
+            ? `<span style="font-size:11px;font-weight:800;color:var(--accent2);line-height:1" title="Trade">⇄</span>`
+            : ""}
+      </div>
       <div class="pick-num">${slot.pick}</div>
       <div>${teamBadge(slot.team)}</div>
       <div style="min-width:0">
@@ -834,10 +845,16 @@ function renderAdmin(){
         ${slot.tradeNote ? `<div style="font-size:10px;color:var(--accent2)">${slot.tradeNote}</div>` : ""}
       </div>
       <div>${filled ? posBadge(slot.pos) : ""}</div>
-      <div><div class="trade-cb">
-        <input type="checkbox" id="tc-${idx}" ${slot.isTrade?"checked":""} onchange="toggleTrade(${idx},this.checked)">
-        <label for="tc-${idx}">Trade</label>
-      </div></div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div class="trade-cb">
+          <input type="checkbox" id="tc-${idx}" ${slot.isTrade?"checked":""} onchange="toggleTrade(${idx},this.checked)">
+          <label for="tc-${idx}">Trade</label>
+        </div>
+        <div class="trade-cb">
+          <input type="checkbox" id="vc-${idx}" ${slot.isVoid?"checked":""} onchange="toggleVoid(${idx},this.checked)">
+          <label for="vc-${idx}" style="color:var(--red)">Void</label>
+        </div>
+      </div>
       <div style="display:flex;gap:4px;align-items:center">
         <button class="btn btn-sm" onclick="editNote(${idx})" style="padding:4px 7px">✎</button>
         ${filled ? `<button class="btn btn-sm btn-danger" onclick="clearSlot(${idx})">✕</button>` : ""}
@@ -992,8 +1009,9 @@ function tryAdminLogin(){
 
 function changeTeam(idx,team){ state.slots[idx].team=team; saveState(); renderAll(); }
 function toggleTrade(idx,checked){ state.slots[idx].isTrade=checked; saveState(); }
+function toggleVoid(idx,checked){ state.slots[idx].isVoid=checked; saveState(); renderAll(); }
 function clearSlot(idx){
-  Object.assign(state.slots[idx],{player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}});
+  Object.assign(state.slots[idx],{player:"",pos:"",isTrade:false,isVoid:false,tradeNote:"",overrides:{}});
   saveState(); renderAll();
 }
 function editNote(idx){
@@ -1156,7 +1174,7 @@ function renderAll(){
   // Safety net — re-init if state got corrupted
   if(!Array.isArray(state.slots))        state.slots=DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}}));
   if(!Array.isArray(state.participants)) state.participants=[];
-  state.slots.forEach(s=>{ if(!s.overrides) s.overrides={}; });
+  state.slots.forEach(s=>{ if(!s.overrides) s.overrides={}; if(s.isVoid===undefined) s.isVoid=false; });
   state.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
   nav.innerHTML=TABS.map(t=>
     `<button class="nav-tab${t.admin?" admin-tab":""}${activeTab===t.id?" active":""}" onclick="setTab('${t.id}')">${t.label}</button>`
