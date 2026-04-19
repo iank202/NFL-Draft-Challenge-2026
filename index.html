@@ -517,7 +517,7 @@ function scoreParticipant(p){
       } else if(norm(slot.player)===pn){
         pts=1; reason="correct player, team traded";
       } else if(slot.team===pk.team && slot.pos===pk.pos){
-        pts=1; reason="correct position, wrong player";
+        pts=1; reason="correct position, wrong player 〜";
       } else {
         pts=0; reason="";
       }
@@ -574,9 +574,9 @@ function renderLeaderboard(){
         return `<tr onclick="viewParticipant('${s.name.replace(/'/g,"\\'")}')">
           <td><span class="lb-rank ${rc}">${i+1}</span></td>
           <td>${participantTag(s.name)}</td>
-          <td><span class="lb-pts">${s.total}</span></td>
-          <td><span style="font-family:var(--df);font-size:20px;font-weight:800;color:var(--green);line-height:1">${correct}</span></td>
+          <td><span style="font-family:var(--df);font-size:28px;font-weight:800;line-height:1;color:var(--green)">${s.total}</span></td>
           <td><span class="lb-max">${s.maxPts}</span></td>
+          <td><span style="font-family:var(--df);font-size:20px;font-weight:800;color:var(--text)">${correct}</span></td>
         </tr>`;
       }).join("")
     : `<tr><td colspan="5"><div class="empty-state">No participants yet.</div></td></tr>`;
@@ -711,7 +711,7 @@ function renderLeaderboard(){
       <div class="panel">
         <div class="ph"><span class="ph-title">Leaderboard</span><span class="ph-badge">${state.participants.length} entries</span></div>
         <div class="scrollable" style="max-height:calc(100vh - 420px)"><table class="lb-table">
-          <thead><tr><th width="36">#</th><th>Participant</th><th>Pts</th><th>✓</th><th>Max</th></tr></thead>
+          <thead><tr><th width="36">#</th><th>Participant</th><th>Pts</th><th>Max</th><th>✓</th></tr></thead>
           <tbody>${lbRows}</tbody>
         </table></div>
       </div>
