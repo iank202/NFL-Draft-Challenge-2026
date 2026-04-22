@@ -479,33 +479,23 @@ function getDraftedSet(){ return new Set(state.slots.filter(s=>s.player).map(s=>
 function getAvail(){ const d=getDraftedSet(); return ALL_PLAYERS.filter(p=>!d.has(norm(p.name))); }
 
 // ─────────────────────────────────────────────────────────────────
-// PARTICIPANT IDENTITY — static color by insertion order
+// PARTICIPANT COLORS — for chart lines only, no visible badges
 // ─────────────────────────────────────────────────────────────────
-const P_PALETTES = [
-  {color:"#1a56db",bg:"rgba(26,86,219,.1)"},
-  {color:"#be123c",bg:"rgba(190,18,60,.1)"},
-  {color:"#15803d",bg:"rgba(21,128,61,.1)"},
-  {color:"#7c3aed",bg:"rgba(124,58,237,.1)"},
-  {color:"#b45309",bg:"rgba(180,83,9,.1)"},
-  {color:"#0891b2",bg:"rgba(8,145,178,.1)"},
-  {color:"#db2777",bg:"rgba(219,39,119,.1)"},
-  {color:"#65a30d",bg:"rgba(101,163,13,.1)"},
-  {color:"#dc2626",bg:"rgba(220,38,38,.1)"},
-  {color:"#0f766e",bg:"rgba(15,118,110,.1)"},
-  {color:"#9333ea",bg:"rgba(147,51,234,.1)"},
-  {color:"#d97706",bg:"rgba(217,119,6,.1)"},
+const P_COLORS = [
+  "#1a56db","#be123c","#15803d","#7c3aed","#b45309",
+  "#0891b2","#db2777","#65a30d","#dc2626","#0f766e",
+  "#9333ea","#d97706"
 ];
 
-function pIdx(name){
+function pColor(name){
   const i = state.participants.findIndex(p=>p.name===name);
-  return i>=0 ? i % P_PALETTES.length : 0;
+  return P_COLORS[i>=0 ? i % P_COLORS.length : 0];
 }
 
+// Participant tag — plain bold text, no color background
 function participantTag(name, size="md"){
-  const p = P_PALETTES[pIdx(name)];
-  const fs = size==="sm" ? "11px" : "13px";
-  const pad = size==="sm" ? "3px 8px" : "4px 10px";
-  return `<span style="display:inline-flex;align-items:center;font-family:var(--df);font-weight:800;font-size:${fs};color:${p.color};background:${p.bg};border:1px solid ${p.color}33;border-radius:5px;padding:${pad};white-space:nowrap;flex-shrink:0;letter-spacing:.02em">${name}</span>`;
+  const fs = size==="sm" ? "13px" : "14px";
+  return `<span style="font-family:var(--df);font-size:${fs};font-weight:800;color:var(--text)">${name}</span>`;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -743,8 +733,7 @@ function renderLeaderboard(){
   if(decidedSlots > 0 && state.participants.length > 0){
     const allScored = scores.map(s=>({
       name: s.name,
-      color: P_PALETTES[pIdx(s.name)].color,
-      // Build cumulative score at each pick 1-32
+      color: pColor(s.name),
       cumulative: (() => {
         let sum = 0;
         return Array.from({length:32}, (_,i) => {
@@ -785,28 +774,22 @@ function renderLeaderboard(){
         return `<text x="${x}" y="${H-PAD.bottom+12}" font-family="Barlow Condensed,sans-serif" font-size="9" fill="#9ca3af" text-anchor="middle">${pick}</text>`;
       }).join("");
 
-      // One polyline per participant, only through decided picks
+      // One polyline + endpoint label per participant
+      const lastPick = decidedPicks[decidedPicks.length-1];
       const lines = allScored.map(s=>{
-        const points = decidedPicks.map(pick=>{
-          const x = xScale(pick-1);
-          const y = yScale(s.cumulative[pick-1]);
-          return `${x},${y}`;
-        }).join(" ");
+        const points = decidedPicks.map(pick=>`${xScale(pick-1)},${yScale(s.cumulative[pick-1])}`).join(" ");
+        const ex = xScale(lastPick-1);
+        const ey = yScale(s.cumulative[lastPick-1]);
+        // Shorten name to fit — first name only if long
+        const label = s.name.split(" ")[0];
         return `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
-                 <circle cx="${xScale(decidedPicks[decidedPicks.length-1]-1)}" cy="${yScale(s.cumulative[decidedPicks[decidedPicks.length-1]-1])}" r="3" fill="${s.color}"/>`;
+                 <circle cx="${ex}" cy="${ey}" r="3" fill="${s.color}"/>
+                 <text x="${ex+5}" y="${ey+4}" font-family="Barlow Condensed,sans-serif" font-size="9" font-weight="700" fill="${s.color}">${label}</text>`;
       }).join("");
-
-      // Legend — participant name tags at the end of their line, sorted by current score desc
-      const legendItems = [...allScored]
-        .sort((a,b)=>b.cumulative[decidedPicks[decidedPicks.length-1]-1] - a.cumulative[decidedPicks[decidedPicks.length-1]-1])
-        .map((s,i)=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px">
-          <span style="display:inline-block;width:14px;height:2px;background:${s.color};border-radius:1px;flex-shrink:0"></span>
-          ${participantTag(s.name,"sm")}
-        </div>`).join("");
 
       horseraceHtml = `<div class="stats-card" style="margin-top:.75rem">
         <div class="stats-header"><span class="stats-title">Score Horserace</span></div>
-        <div style="padding:10px 14px 4px">
+        <div style="padding:10px 14px 10px">
           <svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
             ${gridLines}
             ${lines}
@@ -814,7 +797,6 @@ function renderLeaderboard(){
             <text x="${PAD.left-4}" y="${PAD.top-2}" font-family="Barlow Condensed,sans-serif" font-size="9" fill="#9ca3af" text-anchor="end">pts</text>
           </svg>
         </div>
-        <div style="padding:6px 14px 10px;display:flex;flex-wrap:wrap;gap:6px">${legendItems}</div>
       </div>`;
     }
   }
