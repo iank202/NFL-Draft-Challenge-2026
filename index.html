@@ -685,8 +685,8 @@ function renderLeaderboard(){
   }
 
   // Stats panel — always visible, shows zeroes pre-draft
-  const decidedSlots = state.slots.filter(s=>s.player || s.isVoid || s.originPick==="2R").length;
-  const allPickScores = decidedSlots > 0 ? state.participants.flatMap(p=>scoreParticipant(p).pickScores.filter(pk=>pk.pts!==null)) : [];
+  const decidedSlots = state.slots.filter(s=>s.player).length;
+  const allPickScores = decidedSlots > 0 && state.participants.length > 0 ? state.participants.flatMap(p=>scoreParticipant(p).pickScores.filter(pk=>pk.pts!==null)) : [];
   const totalResolved  = allPickScores.length;
   const correctPicks   = allPickScores.filter(pk=>pk.pts===3).length;
   const totalPtsEarned = allPickScores.reduce((s,pk)=>s+(pk.pts||0),0);
@@ -734,7 +734,7 @@ function renderLeaderboard(){
 
     // Only show picks that have been decided
     const decidedPicks = state.slots
-      .filter(s=>s.player || s.isVoid || s.originPick==="2R")
+      .filter(s=>s.player)
       .map(s=>s.pick)
       .sort((a,b)=>a-b);
 
