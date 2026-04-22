@@ -34,10 +34,14 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .board-avail-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:1.25rem;align-items:stretch;}
 /* Rules stretches full width of the right column */
 .board-avail-col .rules-card{margin-top:0;}
-/* Tablet: stack left col above right col, board+avail stay side by side */
+/* Mobile order overrides */
+.mob-hide-desktop{display:none;}
+.mob-show-mobile{display:none;}
 @media(max-width:900px){
-  .col3{grid-template-columns:1fr;}
-  .board-avail-top{grid-template-columns:1fr 1fr;}
+  .col3{display:flex;flex-direction:column;}
+  .mob-hide-desktop{display:block;}
+  .mob-hide-mobile{display:none !important;}
+  .mob-show-mobile{display:block;}
 }
 /* Mobile: single column, best available moves to bottom */
 @media(max-width:600px){
@@ -930,7 +934,7 @@ function renderLeaderboard(){
   </div>`;
 
   return `<div class="col3">
-    <div>
+    <div class="mob-1">
       <div class="panel">
         <div class="ph"><span class="ph-title">Leaderboard</span><span class="ph-badge">${state.participants.length} entries</span></div>
         <div class="scrollable" style="max-height:300px"><table class="lb-table">
@@ -940,6 +944,7 @@ function renderLeaderboard(){
         ${lbLastPickHtml}
       </div>
       ${otcHtml}
+      <div class="mob-hide-desktop">${chatHtml}</div>
       ${statsHtml}
       ${potHtml}
       ${champHtml}
@@ -950,7 +955,7 @@ function renderLeaderboard(){
           <div class="ph"><span class="ph-title">2026 Draft Board</span></div>
           <div class="scrollable" style="max-height:calc(100vh - 160px)">${boardHtml}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:1.25rem">
+        <div class="mob-hide-mobile" style="display:flex;flex-direction:column;gap:1.25rem">
           ${chatHtml}
           <div class="panel">
             <div class="ph"><span class="ph-title">Best Available</span></div>
@@ -963,6 +968,17 @@ function renderLeaderboard(){
             <input class="avail-search" placeholder="Filter by name…" id="lb-avail-search" value="${availFilter}" oninput="setAvailFilter(this.value)">
             <div class="scrollable" style="max-height:calc(100vh - 290px)">${availHtml}</div>
           </div>
+        </div>
+        <div class="mob-show-mobile panel">
+          <div class="ph"><span class="ph-title">Best Available</span></div>
+          <div class="avail-filter-row">
+            <span class="avail-filter-label">Pos</span>
+            <select class="avail-filter-select" onchange="setPosFilter(this.value)">
+              ${POS_GROUPS.map(p=>`<option value="${p}"${posFilter===p?" selected":""}>${p==="ALL"?"All":p}</option>`).join("")}
+            </select>
+          </div>
+          <input class="avail-search" placeholder="Filter by name…" id="lb-avail-search-mob" value="${availFilter}" oninput="setAvailFilter(this.value)">
+          <div class="scrollable">${availHtml}</div>
         </div>
       </div>
       ${rulesHtml}
