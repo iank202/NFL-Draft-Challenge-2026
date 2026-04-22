@@ -456,10 +456,12 @@ async function initState(){
 
 // Save to Worker (commissioner only) AND localStorage
 async function saveState(){
-  const prevCount = state.slots.filter(s=>s.player).length;
   localStorage.setItem(SK, JSON.stringify(state));
-  checkNewPick(lastPickCount);
-  lastPickCount = prevCount;
+  const newCount = state.slots.filter(s=>s.player).length;
+  if(newCount !== lastPickCount){
+    checkNewPick(lastPickCount);
+    lastPickCount = newCount;
+  }
   if(!commissionerKey) return; // viewers don't write
   try {
     await fetch(`${WORKER_URL}/state`, {
