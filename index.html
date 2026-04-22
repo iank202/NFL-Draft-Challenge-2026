@@ -478,11 +478,34 @@ function teamBadge(team, size=34){
 function getDraftedSet(){ return new Set(state.slots.filter(s=>s.player).map(s=>norm(s.player))); }
 function getAvail(){ const d=getDraftedSet(); return ALL_PLAYERS.filter(p=>!d.has(norm(p.name))); }
 
-// Participant name — plain text, no color badge
+// ─────────────────────────────────────────────────────────────────
+// PARTICIPANT IDENTITY — static color by insertion order
+// ─────────────────────────────────────────────────────────────────
+const P_PALETTES = [
+  {color:"#1a56db",bg:"rgba(26,86,219,.1)"},
+  {color:"#be123c",bg:"rgba(190,18,60,.1)"},
+  {color:"#15803d",bg:"rgba(21,128,61,.1)"},
+  {color:"#7c3aed",bg:"rgba(124,58,237,.1)"},
+  {color:"#b45309",bg:"rgba(180,83,9,.1)"},
+  {color:"#0891b2",bg:"rgba(8,145,178,.1)"},
+  {color:"#db2777",bg:"rgba(219,39,119,.1)"},
+  {color:"#65a30d",bg:"rgba(101,163,13,.1)"},
+  {color:"#dc2626",bg:"rgba(220,38,38,.1)"},
+  {color:"#0f766e",bg:"rgba(15,118,110,.1)"},
+  {color:"#9333ea",bg:"rgba(147,51,234,.1)"},
+  {color:"#d97706",bg:"rgba(217,119,6,.1)"},
+];
+
+function pIdx(name){
+  const i = state.participants.findIndex(p=>p.name===name);
+  return i>=0 ? i % P_PALETTES.length : 0;
+}
+
 function participantTag(name, size="md"){
-  const fs = size==="sm" ? "13px" : "15px";
-  const fw = size==="sm" ? "600" : "700";
-  return `<span style="font-size:${fs};font-weight:${fw};color:var(--text)">${name}</span>`;
+  const p = P_PALETTES[pIdx(name)];
+  const fs = size==="sm" ? "11px" : "13px";
+  const pad = size==="sm" ? "3px 8px" : "4px 10px";
+  return `<span style="display:inline-flex;align-items:center;font-family:var(--df);font-weight:800;font-size:${fs};color:${p.color};background:${p.bg};border:1px solid ${p.color}33;border-radius:5px;padding:${pad};white-space:nowrap;flex-shrink:0;letter-spacing:.02em">${name}</span>`;
 }
 
 // ─────────────────────────────────────────────────────────────────
