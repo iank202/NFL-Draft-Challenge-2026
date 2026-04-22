@@ -611,11 +611,16 @@ function getPayout(){
   const n   = state.participants.length;
   const fee = state.entryFee || 50;
   const pot = n * fee;
-  const payouts = n<=5
-    ? [{place:"1st",pct:1.0}]
-    : n<=9
-      ? [{place:"1st",pct:0.75},{place:"2nd",pct:0.25}]
-      : [{place:"1st",pct:0.65},{place:"2nd",pct:0.25},{place:"3rd",pct:0.10}];
+  let payouts;
+  if(n <= 10){
+    payouts = [{place:"1st", amt:pot}];
+  } else if(n <= 15){
+    const second = 50;
+    payouts = [{place:"1st", amt:pot-second},{place:"2nd", amt:second}];
+  } else {
+    const second = 100, third = 50;
+    payouts = [{place:"1st", amt:pot-second-third},{place:"2nd", amt:second},{place:"3rd", amt:third}];
+  }
   return {pot, fee, payouts};
 }
 
@@ -718,7 +723,7 @@ function renderLeaderboard(){
     </div>
     <div class="pot-body">
       <div class="pot-total"><span class="pot-label">Total pot</span><span class="pot-value">${money(pot)}</span></div>
-      ${payouts.map(p=>`<div class="pot-row"><span class="pot-label">${p.place} place</span><span class="pot-value hi">${money(Math.round(pot*p.pct))}</span></div>`).join("")}
+      ${payouts.map(p=>`<div class="pot-row"><span class="pot-label">${p.place} place</span><span class="pot-value hi">${money(p.amt)}</span></div>`).join("")}
     </div>
   </div>`;
 
