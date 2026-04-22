@@ -1344,16 +1344,21 @@ function renderAll(){
   const content=document.getElementById("main-content");
   if(!nav||!content) return;
   // Safety net — re-init if state got corrupted
-  if(!Array.isArray(state.slots))        state.slots=DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,tradeNote:"",overrides:{}}));
+  if(!Array.isArray(state.slots))        state.slots=DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,isVoid:false,originPick:null,tradeNote:"",overrides:{}}));
   if(!Array.isArray(state.participants)) state.participants=[];
   state.slots.forEach(s=>{ if(!s.overrides) s.overrides={}; if(s.isVoid===undefined) s.isVoid=false; if(s.originPick===undefined) s.originPick=null; });
   state.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
   nav.innerHTML=TABS.map(t=>
     `<button class="nav-tab${t.admin?" admin-tab":""}${activeTab===t.id?" active":""}" onclick="setTab('${t.id}')">${t.label}</button>`
   ).join("");
-  if(activeTab==="leaderboard")       content.innerHTML=renderLeaderboard();
-  else if(activeTab==="participants") content.innerHTML=renderParticipants();
-  else if(activeTab==="admin")        content.innerHTML=renderAdmin();
+  try {
+    if(activeTab==="leaderboard")       content.innerHTML=renderLeaderboard();
+    else if(activeTab==="participants") content.innerHTML=renderParticipants();
+    else if(activeTab==="admin")        content.innerHTML=renderAdmin();
+  } catch(e) {
+    console.error("Render error:", e);
+    content.innerHTML=`<div class="empty-state" style="padding:3rem;color:var(--red)">Render error: ${e.message}<br><small>Check console for details.</small></div>`;
+  }
   updateLiveDot();
 }
 
