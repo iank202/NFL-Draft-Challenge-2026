@@ -418,6 +418,7 @@ function sanitizeState(s){
   if(!Array.isArray(s.slots))        s.slots = DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,isVoid:false,originPick:null,tradeNote:"",overrides:{}}));
   if(!Array.isArray(s.participants)) s.participants = [];
   if(!s.entryFee)                    s.entryFee = 50;
+  if(s.locked===undefined)           s.locked = true; // default to locked until commissioner opens it
   s.slots.forEach(sl=>{ if(!sl.overrides) sl.overrides={}; if(sl.isVoid===undefined) sl.isVoid=false; if(sl.originPick===undefined) sl.originPick=null; });
   s.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
   return s;
@@ -706,15 +707,20 @@ function renderLeaderboard(){
         ? `<div class="otc-pts ${pc}">${r.pts}</div>`
         : `<div class="otc-pts" style="font-family:var(--df);font-size:16px;font-weight:800;text-align:right;color:var(--text2)">${r.maxPts}</div>`;
       const alreadyDrafted = r.player!=="—" && drafted.has(norm(r.player));
-      const playerEl = r.player==="—"
-        ? `<span style="color:var(--muted);font-style:italic">No pick</span>`
-        : `<span style="${alreadyDrafted?"text-decoration:line-through;color:var(--muted);opacity:.6":""}">
-            ${r.player}${r.pos?` <span style="color:var(--muted);font-size:11px">${r.pos}</span>`:""}
-          </span>`;
+      const playerEl = state.locked && !adminUnlocked
+        ? `<span style="color:var(--border2);font-style:italic;font-size:12px">hidden</span>`
+        : r.player==="—"
+          ? `<span style="color:var(--muted);font-style:italic">No pick</span>`
+          : `<span style="${alreadyDrafted?"text-decoration:line-through;color:var(--muted);opacity:.6":""}">
+              ${r.player}${r.pos?` <span style="color:var(--muted);font-size:11px">${r.pos}</span>`:""}
+            </span>`;
+      const ptsDisplay = state.locked && !adminUnlocked
+        ? `<div style="font-family:var(--df);font-size:13px;color:var(--border2);text-align:right">—</div>`
+        : ptsEl;
       return `<div class="otc-row">
         <div style="width:110px;flex-shrink:0">${participantTag(r.name,"sm")}</div>
         <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${playerEl}</div>
-        <div style="flex-shrink:0;width:50px;text-align:right">${ptsEl}</div>
+        <div style="flex-shrink:0;width:50px;text-align:right">${ptsDisplay}</div>
       </div>`;
     }).join("");
     otcHtml = `<div class="otc-panel">
@@ -992,6 +998,21 @@ function selectParticipant(name){ activeParticipant=name; renderAll(); }
 function renderParticipants(){
   const scores = getAllScores();
 
+  // Show participant names but lock picks until pool opens
+  if(state.locked && !adminUnlocked){
+    const subnav = `<div class="p-subnav">${
+      scores.map(s=>
+        `<button class="p-btn" style="cursor:default">${participantTag(s.name,"sm")}</button>`
+      ).join("")
+    }</div>`;
+    return `${subnav}
+    <div style="text-align:center;padding:3rem 1rem;color:var(--muted)">
+      <div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+      <div style="font-family:var(--df);font-size:16px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);margin-bottom:.5rem">Pool is Locked</div>
+      <div style="font-size:14px">Participant selections will be visible after the pool locks for the draft.</div>
+    </div>`;
+  }
+
   // Default to first participant if none selected or selection no longer exists
   if((!activeParticipant || !scores.find(x=>x.name===activeParticipant)) && scores.length){
     activeParticipant = scores[0].name;
@@ -1149,6 +1170,12 @@ function renderAdmin(){
         <div class="fgroup"><label class="flabel">Entry fee ($)</label>
           <input type="text" id="entry-fee" value="${state.entryFee||50}" style="width:120px" onchange="updateFee(this.value)">
         </div>
+        <div class="fgroup" style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="pool-lock" ${state.locked?"checked":""} onchange="toggleLock(this.checked)" style="width:auto;padding:0;border:none;accent-color:var(--accent2)">
+          <label for="pool-lock" style="font-family:var(--df);font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;color:${state.locked?"var(--accent2)":"var(--muted)"}">
+            ${state.locked?"🔒 Pool Locked — picks hidden":"🔓 Pool Open — picks visible"}
+          </label>
+        </div>
       </div>
       <div class="section">
         <div class="section-title">Add Participant</div>
@@ -1265,6 +1292,7 @@ function editNote(idx){
   saveState(); renderAll();
 }
 function updateFee(v){ const n=parseInt(v); if(!isNaN(n)&&n>0){state.entryFee=n;saveState();} }
+function toggleLock(locked){ state.locked=locked; saveState(); renderAll(); }
 
 function applyOverride(){
   const pick=parseInt(document.getElementById("ov-pick")?.value);
@@ -1513,6 +1541,7 @@ function renderAll(){
   // Safety net — re-init if state got corrupted
   if(!Array.isArray(state.slots))        state.slots=DRAFT_ORDER.map(d=>({pick:d.pick,team:d.team,player:"",pos:"",isTrade:false,isVoid:false,originPick:null,tradeNote:"",overrides:{}}));
   if(!Array.isArray(state.participants)) state.participants=[];
+  if(state.locked===undefined)           state.locked=true;
   state.slots.forEach(s=>{ if(!s.overrides) s.overrides={}; if(s.isVoid===undefined) s.isVoid=false; if(s.originPick===undefined) s.originPick=null; });
   state.participants.forEach(p=>{ if(!Array.isArray(p.picks)) p.picks=[]; });
   nav.innerHTML=TABS.map(t=>
