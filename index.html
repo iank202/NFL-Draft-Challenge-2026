@@ -706,8 +706,60 @@ function renderLeaderboard(){
   const maxPtsPossible = decidedSlots * state.participants.length * 3;
   const pickPct  = totalResolved>0 ? Math.round(correctPicks/totalResolved*100) : 0;
   const ptsPct   = maxPtsPossible>0 ? Math.round(totalPtsEarned/maxPtsPossible*100) : 0;
+  // Challenge Stats — pool stats + horserace chart in one card
+  let horseraceSvg = "";
+  if(decidedSlots > 0 && state.participants.length > 0){
+    const allScored = scores.map(s=>({
+      name: s.name,
+      color: pColor(s.name),
+      cumulative: (() => {
+        let sum = 0;
+        return Array.from({length:32}, (_,i) => {
+          const pk = s.pickScores.find(x=>x.pick===i+1);
+          if(pk && pk.pts !== null) sum += pk.pts;
+          return sum;
+        });
+      })()
+    }));
+    const decidedPicks = state.slots.filter(s=>s.player).map(s=>s.pick).sort((a,b)=>a-b);
+    if(decidedPicks.length > 0){
+      const W = 300, H = 150;
+      const PAD = {top:12, right:60, bottom:22, left:26};
+      const chartW = W - PAD.left - PAD.right;
+      const chartH = H - PAD.top - PAD.bottom;
+      const maxScore = Math.max(3, ...allScored.map(s=>s.cumulative[decidedPicks[decidedPicks.length-1]-1]));
+      const xScale = i => PAD.left + (i / 31) * chartW;
+      const yScale = v => PAD.top + chartH - (v / maxScore) * chartH;
+      const gridLines = [0,1,2,3].map(i=>{
+        const yVal = Math.round(maxScore * i / 3);
+        const y = yScale(yVal);
+        return `<line x1="${PAD.left}" x2="${W-PAD.right}" y1="${y}" y2="${y}" stroke="#e5e5e0" stroke-width="1"/>
+                 <text x="${PAD.left-4}" y="${y+4}" font-family="Barlow Condensed,sans-serif" font-size="8" fill="#9ca3af" text-anchor="end">${yVal}</text>`;
+      }).join("");
+      const xTicks = decidedPicks.map(pick=>{
+        const x = xScale(pick-1);
+        return `<text x="${x}" y="${H-PAD.bottom+10}" font-family="Barlow Condensed,sans-serif" font-size="8" fill="#9ca3af" text-anchor="middle">${pick}</text>`;
+      }).join("");
+      const lastPick = decidedPicks[decidedPicks.length-1];
+      const linesSvg = allScored.map(s=>{
+        const points = decidedPicks.map(pick=>`${xScale(pick-1)},${yScale(s.cumulative[pick-1])}`).join(" ");
+        const ex = xScale(lastPick-1);
+        const ey = yScale(s.cumulative[lastPick-1]);
+        return `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+                 <circle cx="${ex}" cy="${ey}" r="2.5" fill="${s.color}"/>
+                 <text x="${ex+5}" y="${ey+4}" font-family="Barlow Condensed,sans-serif" font-size="8.5" font-weight="700" fill="${s.color}">${s.name}</text>`;
+      }).join("");
+      horseraceSvg = `<div style="padding:8px 14px 4px;border-top:1px solid var(--border)">
+        <div class="stats-label" style="margin-bottom:4px">Score Horserace</div>
+        <svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+          ${gridLines}${linesSvg}${xTicks}
+        </svg>
+      </div>`;
+    }
+  }
+
   const statsHtml = `<div class="stats-card">
-    <div class="stats-header"><span class="stats-title">Pool Stats</span></div>
+    <div class="stats-header"><span class="stats-title">Challenge Stats</span></div>
     <div class="stats-body">
       <div class="stats-row">
         <div class="stats-label">Correct Picks</div>
@@ -726,80 +778,8 @@ function renderLeaderboard(){
         <div class="stats-bar"><div class="stats-bar-fill blue" style="width:${ptsPct}%"></div></div>
       </div>
     </div>
+    ${horseraceSvg}
   </div>`;
-
-  // Horserace chart — cumulative points per pick, one line per participant
-  let horseraceHtml = "";
-  if(decidedSlots > 0 && state.participants.length > 0){
-    const allScored = scores.map(s=>({
-      name: s.name,
-      color: pColor(s.name),
-      cumulative: (() => {
-        let sum = 0;
-        return Array.from({length:32}, (_,i) => {
-          const pk = s.pickScores.find(x=>x.pick===i+1);
-          if(pk && pk.pts !== null) sum += pk.pts;
-          return sum;
-        });
-      })()
-    }));
-
-    // Only show picks that have been decided
-    const decidedPicks = state.slots
-      .filter(s=>s.player)
-      .map(s=>s.pick)
-      .sort((a,b)=>a-b);
-
-    if(decidedPicks.length > 0){
-      const W = 320, H = 160;
-      const PAD = {top:12, right:16, bottom:24, left:28};
-      const chartW = W - PAD.left - PAD.right;
-      const chartH = H - PAD.top - PAD.bottom;
-
-      const maxScore = Math.max(3, ...allScored.map(s=>s.cumulative[31]));
-      const xScale = i => PAD.left + (i / 31) * chartW;
-      const yScale = v => PAD.top + chartH - (v / maxScore) * chartH;
-
-      // Grid lines
-      const gridLines = [0,1,2,3].map(i=>{
-        const yVal = Math.round(maxScore * i / 3);
-        const y = yScale(yVal);
-        return `<line x1="${PAD.left}" x2="${W-PAD.right}" y1="${y}" y2="${y}" stroke="#e5e5e0" stroke-width="1"/>
-                 <text x="${PAD.left-4}" y="${y+4}" font-family="Barlow Condensed,sans-serif" font-size="9" fill="#9ca3af" text-anchor="end">${yVal}</text>`;
-      }).join("");
-
-      // X axis tick marks for decided picks
-      const xTicks = decidedPicks.map(pick=>{
-        const x = xScale(pick-1);
-        return `<text x="${x}" y="${H-PAD.bottom+12}" font-family="Barlow Condensed,sans-serif" font-size="9" fill="#9ca3af" text-anchor="middle">${pick}</text>`;
-      }).join("");
-
-      // One polyline + endpoint label per participant
-      const lastPick = decidedPicks[decidedPicks.length-1];
-      const lines = allScored.map(s=>{
-        const points = decidedPicks.map(pick=>`${xScale(pick-1)},${yScale(s.cumulative[pick-1])}`).join(" ");
-        const ex = xScale(lastPick-1);
-        const ey = yScale(s.cumulative[lastPick-1]);
-        // Shorten name to fit — first name only if long
-        const label = s.name.split(" ")[0];
-        return `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
-                 <circle cx="${ex}" cy="${ey}" r="3" fill="${s.color}"/>
-                 <text x="${ex+5}" y="${ey+4}" font-family="Barlow Condensed,sans-serif" font-size="9" font-weight="700" fill="${s.color}">${label}</text>`;
-      }).join("");
-
-      horseraceHtml = `<div class="stats-card" style="margin-top:.75rem">
-        <div class="stats-header"><span class="stats-title">Score Horserace</span></div>
-        <div style="padding:10px 14px 10px">
-          <svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
-            ${gridLines}
-            ${lines}
-            ${xTicks}
-            <text x="${PAD.left-4}" y="${PAD.top-2}" font-family="Barlow Condensed,sans-serif" font-size="9" fill="#9ca3af" text-anchor="end">pts</text>
-          </svg>
-        </div>
-      </div>`;
-    }
-  }
 
   // Prize pool
   const potHtml = `<div class="pot-card">
@@ -810,6 +790,16 @@ function renderLeaderboard(){
     <div class="pot-body">
       <div class="pot-total"><span class="pot-label">Total pot</span><span class="pot-value">${money(pot)}</span></div>
       ${payouts.map(p=>`<div class="pot-row"><span class="pot-label">${p.place} place</span><span class="pot-value hi">${money(p.amt)}</span></div>`).join("")}
+    </div>
+  </div>`;
+
+  // Past champions
+  const champHtml = `<div class="pot-card">
+    <div class="pot-header"><span class="pot-title">Past Champions</span></div>
+    <div class="pot-body">
+      <div class="pot-row"><span class="pot-label">2025</span><span class="pot-value">Chris L</span></div>
+      <div class="pot-row"><span class="pot-label">2024</span><span class="pot-value">Bryce J</span></div>
+      <div class="pot-row"><span class="pot-label">2023</span><span class="pot-value">Big Al</span></div>
     </div>
   </div>`;
 
@@ -890,8 +880,8 @@ function renderLeaderboard(){
       </div>
       ${otcHtml}
       ${statsHtml}
-      ${horseraceHtml}
       ${potHtml}
+      ${champHtml}
     </div>
     <div class="board-avail-col">
       <div class="board-avail-top">
