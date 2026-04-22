@@ -953,7 +953,7 @@ function renderLeaderboard(){
       <div class="board-avail-top">
         <div class="panel" style="flex:1">
           <div class="ph"><span class="ph-title">2026 Draft Board</span></div>
-          <div class="scrollable">${boardHtml}</div>
+          <div class="scrollable" style="max-height:calc(100vh - 120px)">${boardHtml}</div>
         </div>
         <div class="mob-hide-mobile" style="display:flex;flex-direction:column;gap:1.25rem">
           ${chatHtml}
@@ -978,7 +978,7 @@ function renderLeaderboard(){
             </select>
           </div>
           <input class="avail-search" placeholder="Filter by name…" id="lb-avail-search-mob" value="${availFilter}" oninput="setAvailFilter(this.value)">
-          <div class="scrollable">${availHtml}</div>
+          <div class="scrollable" style="max-height:360px">${availHtml}</div>
         </div>
       </div>
       ${rulesHtml}
