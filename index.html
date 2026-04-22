@@ -601,7 +601,7 @@ function scoreParticipant(p){
       if(ov !== undefined){
         pts=ov; reason="manual override";
       } else if(norm(slot.player)===pn && slot.team===pk.team){
-        pts=3; reason="correct player + team ✓";
+        pts=3; reason="correct player + team 🎯";
       } else if(norm(slot.player)===pn){
         pts=1; reason="correct player, team traded";
       } else if(slot.team===pk.team && slot.pos===pk.pos){
@@ -715,12 +715,20 @@ function renderLeaderboard(){
         <div style="flex-shrink:0;width:50px;text-align:right">${ptsEl}</div>
       </div>`;
     }).join("");
+    const wciRow = whoCalledItNames.length
+      ? `<div style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:rgba(21,128,61,.06);border-bottom:1px solid rgba(21,128,61,.15)">
+          <span style="font-family:var(--df);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--green);white-space:nowrap">🎯 Last Pick</span>
+          <span style="font-size:12px;color:var(--green);font-weight:600">${whoCalledItNames.join(", ")}</span>
+        </div>`
+      : "";
+
     otcHtml = `<div class="otc-panel">
       <div class="otc-header">
         ${teamBadge(nextSlot.team,28)}
         <span class="otc-title" style="flex:1;margin-left:10px">On the Clock — Pick ${nextSlot.pick}</span>
         <span style="font-family:var(--df);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Max Pts</span>
       </div>
+      ${wciRow}
       ${otcRowsHtml||`<div class="empty-state">No participants yet.</div>`}
     </div>`;
   }
@@ -897,11 +905,6 @@ function renderLeaderboard(){
     `<div class="avail-row">${posBadge(p.pos)}<span class="avail-name">${p.name}</span></div>`
   ).join("") || `<div class="empty-state">No players match.</div>`;
 
-  // Who called it banner
-  const wciHtml = whoCalledItNames.length
-    ? `<div class="wci-banner">🎯 Called it: ${whoCalledItNames.join(", ")}</div>`
-    : "";
-
   // Chat panel
   const fmtTime = ts => { const d=new Date(ts); return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
   const chatRows = chatMessages.length
@@ -914,10 +917,12 @@ function renderLeaderboard(){
   const chatHtml = `<div class="chat-panel">
     <div class="ph"><span class="ph-title">Live Chat</span></div>
     <div class="chat-messages" id="chat-messages">${chatRows}</div>
-    <div class="chat-input-row">
-      <input class="chat-name-input" id="chat-name" placeholder="Your name" value="${chatName}" oninput="chatName=this.value;localStorage.setItem('chatName',this.value)">
-      <input class="chat-text-input" id="chat-text" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
-      <button class="chat-send-btn" onclick="sendChat()">Send</button>
+    <div class="chat-input-row" style="flex-direction:column;gap:6px">
+      <input class="chat-name-input" id="chat-name" placeholder="Your name" value="${chatName}" style="width:100%" oninput="chatName=this.value;localStorage.setItem('chatName',this.value)">
+      <div style="display:flex;gap:6px">
+        <input class="chat-text-input" id="chat-text" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send-btn" onclick="sendChat()">Send</button>
+      </div>
     </div>
   </div>`;
 
@@ -926,11 +931,11 @@ function renderLeaderboard(){
       <div class="panel">
         <div class="ph"><span class="ph-title">Leaderboard</span><span class="ph-badge">${state.participants.length} entries</span></div>
         <div class="scrollable" style="max-height:calc(100vh - 420px)"><table class="lb-table">
-          <thead><tr><th width="36">#</th><th>Participant</th><th>Pts</th><th>Max</th><th>✓</th></tr></thead>
+          <thead><tr><th width="36">#</th><th>Participant</th><th>Pts</th><th>Max</th><th>🎯</th></tr></thead>
           <tbody>${lbRows}</tbody>
         </table></div>
       </div>
-      ${otcHtml ? otcHtml.replace('</div>\n    </div>',`${wciHtml}</div>\n    </div>`) : ""}
+      ${otcHtml}
       ${statsHtml}
       ${potHtml}
       ${champHtml}
