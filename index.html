@@ -685,7 +685,7 @@ function renderLeaderboard(){
   }
 
   // Stats panel — always visible, shows zeroes pre-draft
-  const decidedSlots = state.slots.filter(s=>s.player).length;
+  const decidedSlots = state.slots.filter(s=>s.player || s.isVoid || s.originPick==="2R").length;
   const allPickScores = decidedSlots > 0 ? state.participants.flatMap(p=>scoreParticipant(p).pickScores.filter(pk=>pk.pts!==null)) : [];
   const totalResolved  = allPickScores.length;
   const correctPicks   = allPickScores.filter(pk=>pk.pts===3).length;
@@ -714,6 +714,87 @@ function renderLeaderboard(){
       </div>
     </div>
   </div>`;
+
+  // Horserace chart — cumulative points per pick, one line per participant
+  let horseraceHtml = "";
+  if(decidedSlots > 0 && state.participants.length > 0){
+    const allScored = scores.map(s=>({
+      name: s.name,
+      color: P_PALETTES[pIdx(s.name)].color,
+      // Build cumulative score at each pick 1-32
+      cumulative: (() => {
+        let sum = 0;
+        return Array.from({length:32}, (_,i) => {
+          const pk = s.pickScores.find(x=>x.pick===i+1);
+          if(pk && pk.pts !== null) sum += pk.pts;
+          return sum;
+        });
+      })()
+    }));
+
+    // Only show picks that have been decided
+    const decidedPicks = state.slots
+      .filter(s=>s.player || s.isVoid || s.originPick==="2R")
+      .map(s=>s.pick)
+      .sort((a,b)=>a-b);
+
+    if(decidedPicks.length > 0){
+      const W = 320, H = 160;
+      const PAD = {top:12, right:16, bottom:24, left:28};
+      const chartW = W - PAD.left - PAD.right;
+      const chartH = H - PAD.top - PAD.bottom;
+
+      const maxScore = Math.max(3, ...allScored.map(s=>s.cumulative[31]));
+      const xScale = i => PAD.left + (i / 31) * chartW;
+      const yScale = v => PAD.top + chartH - (v / maxScore) * chartH;
+
+      // Grid lines
+      const gridLines = [0,1,2,3].map(i=>{
+        const yVal = Math.round(maxScore * i / 3);
+        const y = yScale(yVal);
+        return `<line x1="${PAD.left}" x2="${W-PAD.right}" y1="${y}" y2="${y}" stroke="#e5e5e0" stroke-width="1"/>
+                 <text x="${PAD.left-4}" y="${y+4}" font-family="Barlow Condensed,sans-serif" font-size="9" fill="#9ca3af" text-anchor="end">${yVal}</text>`;
+      }).join("");
+
+      // X axis tick marks for decided picks
+      const xTicks = decidedPicks.map(pick=>{
+        const x = xScale(pick-1);
+        return `<text x="${x}" y="${H-PAD.bottom+12}" font-family="Barlow Condensed,sans-serif" font-size="9" fill="#9ca3af" text-anchor="middle">${pick}</text>`;
+      }).join("");
+
+      // One polyline per participant, only through decided picks
+      const lines = allScored.map(s=>{
+        const points = decidedPicks.map(pick=>{
+          const x = xScale(pick-1);
+          const y = yScale(s.cumulative[pick-1]);
+          return `${x},${y}`;
+        }).join(" ");
+        return `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
+                 <circle cx="${xScale(decidedPicks[decidedPicks.length-1]-1)}" cy="${yScale(s.cumulative[decidedPicks[decidedPicks.length-1]-1])}" r="3" fill="${s.color}"/>`;
+      }).join("");
+
+      // Legend — participant name tags at the end of their line, sorted by current score desc
+      const legendItems = [...allScored]
+        .sort((a,b)=>b.cumulative[decidedPicks[decidedPicks.length-1]-1] - a.cumulative[decidedPicks[decidedPicks.length-1]-1])
+        .map((s,i)=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px">
+          <span style="display:inline-block;width:14px;height:2px;background:${s.color};border-radius:1px;flex-shrink:0"></span>
+          ${participantTag(s.name,"sm")}
+        </div>`).join("");
+
+      horseraceHtml = `<div class="stats-card" style="margin-top:.75rem">
+        <div class="stats-header"><span class="stats-title">Score Horserace</span></div>
+        <div style="padding:10px 14px 4px">
+          <svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+            ${gridLines}
+            ${lines}
+            ${xTicks}
+            <text x="${PAD.left-4}" y="${PAD.top-2}" font-family="Barlow Condensed,sans-serif" font-size="9" fill="#9ca3af" text-anchor="end">pts</text>
+          </svg>
+        </div>
+        <div style="padding:6px 14px 10px;display:flex;flex-wrap:wrap;gap:6px">${legendItems}</div>
+      </div>`;
+    }
+  }
 
   // Prize pool
   const potHtml = `<div class="pot-card">
@@ -804,6 +885,7 @@ function renderLeaderboard(){
       </div>
       ${otcHtml}
       ${statsHtml}
+      ${horseraceHtml}
       ${potHtml}
     </div>
     <div class="board-avail-col">
