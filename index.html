@@ -715,13 +715,6 @@ function renderLeaderboard(){
         <div style="flex-shrink:0;width:50px;text-align:right">${ptsEl}</div>
       </div>`;
     }).join("");
-    const wciRow = whoCalledItNames.length
-      ? `<div style="display:flex;align-items:center;gap:8px;padding:6px 14px;border-top:1px solid var(--border);background:var(--s2)">
-          <span style="font-family:var(--df);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0">🎯 Last Pick</span>
-          <span style="font-family:var(--df);font-size:12px;font-weight:700;color:var(--text2)">${whoCalledItNames.join(", ")}</span>
-        </div>`
-      : "";
-
     otcHtml = `<div class="otc-panel">
       <div class="otc-header">
         ${teamBadge(nextSlot.team,28)}
@@ -729,9 +722,16 @@ function renderLeaderboard(){
         <span style="font-family:var(--df);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Max Pts</span>
       </div>
       ${otcRowsHtml||`<div class="empty-state">No participants yet.</div>`}
-      ${wciRow}
     </div>`;
   }
+
+  // Last Pick Correct — shown at bottom of leaderboard panel
+  const lbLastPickHtml = whoCalledItNames.length
+    ? `<div style="display:flex;align-items:center;gap:8px;padding:7px 14px;border-top:1px solid var(--border);background:var(--s2)">
+        <span style="font-family:var(--df);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0">🎯 Last Pick</span>
+        <span style="font-family:var(--df);font-size:12px;font-weight:700;color:var(--text2)">${whoCalledItNames.join(", ")}</span>
+      </div>`
+    : "";
 
   // Stats panel — always visible, shows zeroes pre-draft
   const decidedSlots = state.slots.filter(s=>s.player).length;
@@ -919,9 +919,9 @@ function renderLeaderboard(){
     <div class="chat-messages" id="chat-messages">${chatRows}</div>
     <div class="chat-input-row" style="flex-direction:column;gap:6px">
       <input class="chat-name-input" id="chat-name" placeholder="Your name" value="${chatName}" style="width:100%" oninput="chatName=this.value;localStorage.setItem('chatName',this.value)">
-      <div style="display:flex;gap:6px;align-items:flex-end">
-        <textarea class="chat-text-input" id="chat-text" placeholder="Message…" rows="3" style="resize:none;line-height:1.4" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
-        <button class="chat-send-btn" onclick="sendChat()">Send</button>
+      <textarea class="chat-text-input" id="chat-text" placeholder="Message… (Enter to send)" rows="2" style="resize:none;line-height:1.4;width:100%" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="chat-send-btn" onclick="sendChat()" style="padding:5px 14px;font-size:11px">Send ↵</button>
       </div>
     </div>
   </div>`;
@@ -930,10 +930,11 @@ function renderLeaderboard(){
     <div>
       <div class="panel">
         <div class="ph"><span class="ph-title">Leaderboard</span><span class="ph-badge">${state.participants.length} entries</span></div>
-        <div class="scrollable" style="max-height:calc(100vh - 420px)"><table class="lb-table">
+        <div class="scrollable" style="max-height:calc(100vh - 340px)"><table class="lb-table">
           <thead><tr><th width="36">#</th><th>Participant</th><th>Pts</th><th>Max</th><th>🎯</th></tr></thead>
           <tbody>${lbRows}</tbody>
         </table></div>
+        ${lbLastPickHtml}
       </div>
       ${otcHtml}
       ${statsHtml}
