@@ -31,7 +31,7 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 .col3{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:1.25rem;align-items:start;}
 /* Inside the right column: board and avail side by side */
 .board-avail-col{display:flex;flex-direction:column;gap:1.25rem;}
-.board-avail-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:1.25rem;align-items:stretch;}
+.board-avail-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:1.25rem;align-items:start;}
 /* Rules stretches full width of the right column */
 .board-avail-col .rules-card{margin-top:0;}
 /* Mobile order overrides */
@@ -953,7 +953,7 @@ function renderLeaderboard(){
       <div class="board-avail-top">
         <div class="panel" style="flex:1">
           <div class="ph"><span class="ph-title">2026 Draft Board</span></div>
-          <div class="scrollable" style="max-height:calc(100vh - 160px)">${boardHtml}</div>
+          <div class="scrollable">${boardHtml}</div>
         </div>
         <div class="mob-hide-mobile" style="display:flex;flex-direction:column;gap:1.25rem">
           ${chatHtml}
