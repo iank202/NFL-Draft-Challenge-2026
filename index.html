@@ -951,9 +951,12 @@ function renderLeaderboard(){
     </div>
     <div class="board-avail-col">
       <div class="board-avail-top">
-        <div class="panel" style="flex:1">
-          <div class="ph"><span class="ph-title">2026 Draft Board</span></div>
-          <div class="scrollable" style="max-height:calc(100vh - 120px)">${boardHtml}</div>
+        <div style="display:flex;flex-direction:column;gap:1.25rem;min-width:0">
+          <div class="panel">
+            <div class="ph"><span class="ph-title">2026 Draft Board</span></div>
+            <div class="scrollable" style="max-height:calc(100vh - 120px)">${boardHtml}</div>
+          </div>
+          ${rulesHtml}
         </div>
         <div class="mob-hide-mobile" style="display:flex;flex-direction:column;gap:1.25rem">
           ${chatHtml}
@@ -981,7 +984,6 @@ function renderLeaderboard(){
           <div class="scrollable" style="max-height:360px">${availHtml}</div>
         </div>
       </div>
-      ${rulesHtml}
     </div>
   </div>`;
 }
