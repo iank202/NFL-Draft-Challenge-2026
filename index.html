@@ -522,7 +522,23 @@ function scoreParticipant(p){
     const resolvedSlots = slotsForOriginalPick(pk.pick).filter(s=>s.player || s.isVoid || s.originPick==="2R");
 
     if(resolvedSlots.length === 0){
-      // Not yet decided
+      // Participant's slot not yet decided — but check if the team
+      // already used a different pick to take the mocked player (multi-pick rule)
+      if(pn){
+        const otherPickMatch = state.slots.find(s=>
+          s.pick !== pk.pick &&
+          s.originPick === null &&
+          s.team === pk.team &&
+          s.player &&
+          !s.isVoid &&
+          norm(s.player)===pn
+        );
+        if(otherPickMatch){
+          total+=1; maxPts+=1;
+          return {...pk, pts:1, maxPts:1, reason:"correct player, team's other pick 〜"};
+        }
+      }
+      // Truly undecided
       const mp = !pn ? 0 : drafted.has(pn) ? 1 : 3;
       maxPts += mp;
       return {...pk, pts:null, maxPts:mp, reason:(drafted.has(pn)&&pn)?"player already drafted elsewhere":""};
