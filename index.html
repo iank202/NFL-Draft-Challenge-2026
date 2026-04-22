@@ -764,7 +764,8 @@ function renderLeaderboard(){
       const chartW = W - PAD.left - PAD.right;
       const chartH = H - PAD.top - PAD.bottom;
       const maxScore = Math.max(3, ...allScored.map(s=>s.cumulative[decidedPicks[decidedPicks.length-1]-1]));
-      const xScale = i => PAD.left + (i / 31) * chartW;
+      const n = decidedPicks.length;
+      const xScale = i => PAD.left + (i / Math.max(n-1, 1)) * chartW;
       const yScale = v => PAD.top + chartH - (v / maxScore) * chartH;
       const gridLines = [0,1,2,3].map(i=>{
         const yVal = Math.round(maxScore * i / 3);
@@ -772,21 +773,20 @@ function renderLeaderboard(){
         return `<line x1="${PAD.left}" x2="${W-PAD.right}" y1="${y}" y2="${y}" stroke="#e5e5e0" stroke-width="1"/>
                  <text x="${PAD.left-4}" y="${y+4}" font-family="Barlow Condensed,sans-serif" font-size="8" fill="#9ca3af" text-anchor="end">${yVal}</text>`;
       }).join("");
-      const xTicks = decidedPicks.map(pick=>{
-        const x = xScale(pick-1);
+      const xTicks = decidedPicks.map((pick,i)=>{
+        const x = xScale(i);
         return `<text x="${x}" y="${H-PAD.bottom+10}" font-family="Barlow Condensed,sans-serif" font-size="8" fill="#9ca3af" text-anchor="middle">${pick}</text>`;
       }).join("");
       const lastPick = decidedPicks[decidedPicks.length-1];
       const linesSvg = allScored.map(s=>{
-        const points = decidedPicks.map(pick=>`${xScale(pick-1)},${yScale(s.cumulative[pick-1])}`).join(" ");
-        const ex = xScale(lastPick-1);
+        const points = decidedPicks.map((pick,i)=>`${xScale(i)},${yScale(s.cumulative[pick-1])}`).join(" ");
+        const ex = xScale(n-1);
         const ey = yScale(s.cumulative[lastPick-1]);
         return `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
                  <circle cx="${ex}" cy="${ey}" r="2.5" fill="${s.color}"/>
                  <text x="${ex+5}" y="${ey+4}" font-family="Barlow Condensed,sans-serif" font-size="8.5" font-weight="700" fill="${s.color}">${s.name}</text>`;
       }).join("");
       horseraceSvg = `<div style="padding:8px 14px 4px;border-top:1px solid var(--border)">
-        <div class="stats-label" style="margin-bottom:4px">Score Horserace</div>
         <svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
           ${gridLines}${linesSvg}${xTicks}
         </svg>
@@ -919,8 +919,8 @@ function renderLeaderboard(){
     <div class="chat-messages" id="chat-messages">${chatRows}</div>
     <div class="chat-input-row" style="flex-direction:column;gap:6px">
       <input class="chat-name-input" id="chat-name" placeholder="Your name" value="${chatName}" style="width:100%" oninput="chatName=this.value;localStorage.setItem('chatName',this.value)">
-      <div style="display:flex;gap:6px">
-        <input class="chat-text-input" id="chat-text" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
+      <div style="display:flex;gap:6px;align-items:flex-end">
+        <textarea class="chat-text-input" id="chat-text" placeholder="Message…" rows="3" style="resize:none;line-height:1.4" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
         <button class="chat-send-btn" onclick="sendChat()">Send</button>
       </div>
     </div>
