@@ -229,6 +229,25 @@ header{background:var(--surface);border-bottom:2px solid var(--border);padding:0
 }
 
 
+/* ── CHAT ── */
+.chat-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;}
+.chat-messages{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px;min-height:160px;max-height:220px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.chat-msg{display:flex;flex-direction:column;gap:1px;}
+.chat-msg-meta{display:flex;align-items:baseline;gap:6px;}
+.chat-msg-name{font-family:var(--df);font-size:12px;font-weight:800;color:var(--text);}
+.chat-msg-time{font-size:10px;color:var(--muted);}
+.chat-msg-text{font-size:13px;color:var(--text2);line-height:1.4;}
+.chat-msg.system .chat-msg-text{color:var(--green);font-style:italic;font-size:12px;}
+.chat-input-row{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--border);background:var(--s2);}
+.chat-name-input{width:90px;flex-shrink:0;padding:6px 8px;border:1px solid var(--border2);border-radius:5px;font-family:var(--bf);font-size:12px;background:var(--surface);color:var(--text);outline:none;}
+.chat-name-input:focus{border-color:var(--accent);}
+.chat-text-input{flex:1;padding:6px 8px;border:1px solid var(--border2);border-radius:5px;font-family:var(--bf);font-size:13px;background:var(--surface);color:var(--text);outline:none;}
+.chat-text-input:focus{border-color:var(--accent);}
+.chat-send-btn{padding:6px 12px;border-radius:5px;font-family:var(--df);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;flex-shrink:0;}
+.chat-send-btn:hover{background:#1344b8;}
+.wci-banner{background:rgba(21,128,61,.08);border:1px solid rgba(21,128,61,.2);border-radius:6px;padding:6px 12px;margin:0 14px 8px;font-size:12px;color:var(--green);font-weight:600;text-align:center;animation:fadeInUp .3s ease;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
 .admin-gate{display:flex;align-items:center;justify-content:center;min-height:300px;}
 .admin-gate-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:2rem;width:100%;max-width:380px;}
 .gate-title{font-family:var(--df);font-size:22px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent2);margin-bottom:1.25rem;}
@@ -457,6 +476,15 @@ let activeParticipant = state.participants[0]?.name || "";
 let availFilter = "";
 let posFilter = "ALL";
 let dragPlayerData = null;
+
+// Chat state
+let chatMessages = [];
+let chatName = localStorage.getItem('chatName') || '';
+let lastChatCount = 0;
+
+// Pick notification tracking
+let lastPickCount = state.slots.filter(s=>s.player).length;
+let whoCalledItNames = []; // participants who scored 3pts on last pick
 
 // ─────────────────────────────────────────────────────────────────
 // HELPERS
@@ -869,6 +897,30 @@ function renderLeaderboard(){
     `<div class="avail-row">${posBadge(p.pos)}<span class="avail-name">${p.name}</span></div>`
   ).join("") || `<div class="empty-state">No players match.</div>`;
 
+  // Who called it banner
+  const wciHtml = whoCalledItNames.length
+    ? `<div class="wci-banner">🎯 Called it: ${whoCalledItNames.join(", ")}</div>`
+    : "";
+
+  // Chat panel
+  const fmtTime = ts => { const d=new Date(ts); return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
+  const chatRows = chatMessages.length
+    ? chatMessages.map(m=>`<div class="chat-msg${m.system?' system':''}">
+        <div class="chat-msg-meta"><span class="chat-msg-name">${m.name}</span><span class="chat-msg-time">${fmtTime(m.time)}</span></div>
+        <div class="chat-msg-text">${m.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      </div>`).join("")
+    : `<div style="color:var(--muted);font-size:12px;font-style:italic;padding:8px 0">No messages yet. Say something!</div>`;
+
+  const chatHtml = `<div class="chat-panel">
+    <div class="ph"><span class="ph-title">Live Chat</span></div>
+    <div class="chat-messages" id="chat-messages">${chatRows}</div>
+    <div class="chat-input-row">
+      <input class="chat-name-input" id="chat-name" placeholder="Your name" value="${chatName}" oninput="chatName=this.value;localStorage.setItem('chatName',this.value)">
+      <input class="chat-text-input" id="chat-text" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send-btn" onclick="sendChat()">Send</button>
+    </div>
+  </div>`;
+
   return `<div class="col3">
     <div>
       <div class="panel">
@@ -878,7 +930,7 @@ function renderLeaderboard(){
           <tbody>${lbRows}</tbody>
         </table></div>
       </div>
-      ${otcHtml}
+      ${otcHtml ? otcHtml.replace('</div>\n    </div>',`${wciHtml}</div>\n    </div>`) : ""}
       ${statsHtml}
       ${potHtml}
       ${champHtml}
@@ -889,16 +941,19 @@ function renderLeaderboard(){
           <div class="ph"><span class="ph-title">2026 Draft Board</span></div>
           <div class="scrollable" style="max-height:calc(100vh - 185px)">${boardHtml}</div>
         </div>
-        <div class="panel">
-          <div class="ph"><span class="ph-title">Best Available</span></div>
-          <div class="avail-filter-row">
-            <span class="avail-filter-label">Pos</span>
-            <select class="avail-filter-select" onchange="setPosFilter(this.value)">
-              ${POS_GROUPS.map(p=>`<option value="${p}"${posFilter===p?" selected":""}>${p==="ALL"?"All":p}</option>`).join("")}
-            </select>
+        <div style="display:flex;flex-direction:column;gap:1.25rem">
+          ${chatHtml}
+          <div class="panel">
+            <div class="ph"><span class="ph-title">Best Available</span></div>
+            <div class="avail-filter-row">
+              <span class="avail-filter-label">Pos</span>
+              <select class="avail-filter-select" onchange="setPosFilter(this.value)">
+                ${POS_GROUPS.map(p=>`<option value="${p}"${posFilter===p?" selected":""}>${p==="ALL"?"All":p}</option>`).join("")}
+              </select>
+            </div>
+            <input class="avail-search" placeholder="Filter by name…" id="lb-avail-search" value="${availFilter}" oninput="setAvailFilter(this.value)">
+            <div class="scrollable" style="max-height:calc(100vh - 290px)">${availHtml}</div>
           </div>
-          <input class="avail-search" placeholder="Filter by name…" id="lb-avail-search" value="${availFilter}" oninput="setAvailFilter(this.value)">
-          <div class="scrollable" style="max-height:calc(100vh - 290px)">${availHtml}</div>
         </div>
       </div>
       ${rulesHtml}
@@ -1284,6 +1339,96 @@ setInterval(updateCountdown,1000);
 updateCountdown();
 
 
+// ─────────────────────────────────────────────────────────────────
+// CHAT
+// ─────────────────────────────────────────────────────────────────
+async function sendChat(){
+  const nameEl = document.getElementById('chat-name');
+  const textEl = document.getElementById('chat-text');
+  const name = (nameEl?.value||'').trim();
+  const text = (textEl?.value||'').trim();
+  if(!name || !text) return;
+  if(textEl) textEl.value = '';
+  chatName = name;
+  localStorage.setItem('chatName', name);
+  try {
+    await fetch(`${WORKER_URL}/chat`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({name, text}),
+    });
+    await loadChat();
+  } catch(e){ console.warn('Chat send failed:', e); }
+}
+
+async function loadChat(){
+  try {
+    const res = await fetch(`${WORKER_URL}/chat`);
+    const msgs = await res.json();
+    if(JSON.stringify(msgs) !== JSON.stringify(chatMessages)){
+      chatMessages = msgs;
+      // Scroll to bottom after render
+      if(activeTab==='leaderboard'){
+        renderAll();
+        setTimeout(()=>{
+          const el = document.getElementById('chat-messages');
+          if(el) el.scrollTop = el.scrollHeight;
+        }, 50);
+      }
+    }
+  } catch(e){ console.warn('Chat load failed:', e); }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// CHIME — plays a subtle tone when a new pick is entered
+// ─────────────────────────────────────────────────────────────────
+function playChime(){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch(e){ /* audio not available */ }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// PICK NOTIFICATION — detect new picks, fire chime + who called it
+// ─────────────────────────────────────────────────────────────────
+function checkNewPick(prevCount){
+  const newCount = state.slots.filter(s=>s.player).length;
+  if(newCount <= prevCount) return newCount;
+
+  // A new pick was just entered
+  playChime();
+
+  // Find the newly decided slot
+  const decidedSlots = state.slots.filter(s=>s.player).map(s=>s.pick).sort((a,b)=>a-b);
+  const newPickNum = decidedSlots[newCount-1];
+
+  // Find participants who scored 3 on this pick
+  const callers = state.participants
+    .map(p=>scoreParticipant(p))
+    .filter(s=>{
+      const pk = s.pickScores.find(x=>x.pick===newPickNum);
+      return pk && pk.pts===3;
+    })
+    .map(s=>s.name);
+
+  whoCalledItNames = callers;
+
+  // Auto-clear "who called it" after 12 seconds
+  if(callers.length) setTimeout(()=>{ whoCalledItNames=[]; renderAll(); }, 12000);
+
+  return newCount;
+}
+
 function setSynced(ok){
   const el=document.getElementById("sync-dot");
   const lbl=document.getElementById("sync-label");
@@ -1296,7 +1441,7 @@ function setSynced(ok){
 // AUTO-REFRESH — poll Worker every 15s so all viewers stay in sync
 // ─────────────────────────────────────────────────────────────────
 async function autoRefresh(){
-  if(adminUnlocked) return; // commissioner is the source of truth
+  if(adminUnlocked) return;
   try {
     const res = await fetch(`${WORKER_URL}/state`);
     const data = await res.json();
@@ -1305,8 +1450,10 @@ async function autoRefresh(){
       const incoming = JSON.stringify(data);
       const current  = JSON.stringify(state);
       if(incoming !== current){
+        const prevCount = state.slots.filter(s=>s.player).length;
         state = sanitizeState(data);
         localStorage.setItem(SK, JSON.stringify(state));
+        lastPickCount = checkNewPick(prevCount);
         renderAll();
       }
     }
@@ -1314,6 +1461,8 @@ async function autoRefresh(){
     setSynced(false);
     console.warn('Auto-refresh failed:', e);
   }
+  // Also poll chat
+  await loadChat();
 }
 setInterval(autoRefresh, 15000);
 
@@ -1360,6 +1509,7 @@ function renderAll(){
 // Boot — show page immediately from localStorage, then sync from Worker
 renderAll();
 initState();
+loadChat();
 </script>
 </body>
 </html>
