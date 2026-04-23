@@ -1324,10 +1324,17 @@ function addParticipant(){
   if(!name) return err("Enter a name.");
   if(!raw)  return err("Paste pick data.");
   if(state.participants.find(p=>norm(p.name)===norm(name))) return err("Name already exists.");
+  const POSITIONS = new Set(["QB","WR","RB","TE","OT","IOL","DL","EDGE","LB","CB","S","DT","ATH"]);
   const picks=raw.split("\n").map(l=>l.trim()).filter(Boolean).reduce((acc,line)=>{
-    const parts=line.split("\t");
-    const pn=parseInt(parts[0]);
-    if(!isNaN(pn)) acc.push({pick:pn,team:parts[1]?.trim()||"",player:parts[2]?.trim()||"",pos:parts[3]?.trim()||""});
+    // Split on tabs first; fall back to 2+ spaces (Google Sheets copy format)
+    let parts = line.split("\t");
+    if(parts.length < 3) parts = line.split(/\s{2,}/);
+    const pn = parseInt(parts[0]);
+    if(isNaN(pn)) return acc;
+    // Position is always the last token and matches known positions
+    const tokens = line.trim().split(/\s+/);
+    const pos = POSITIONS.has(tokens[tokens.length-1]) ? tokens[tokens.length-1] : parts[3]?.trim()||"";
+    acc.push({pick:pn, team:parts[1]?.trim()||"", player:parts[2]?.trim()||"", pos});
     return acc;
   },[]);
   if(picks.length<20) return err(`Only ${picks.length} valid rows — expected 32.`);
